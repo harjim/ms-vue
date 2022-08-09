@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="UTF-8">
+	<title>证书</title>
+	<script src="https://code.jquery.com/jquery-3.4.1.min.js"
+		integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+	<style type="text/css">
+		/* CSS Document */
+		.nei-container {
+			height: auto;
+			width: 999px;
+			margin: 0 auto;
+		}
+
+		.pj_search_top {
+			float: left;
+			width: 999px;
+			height: 121px;
+			margin: 0 auto;
+			background: url(/images/cert/nei-search_top.gif) no-repeat;
+		}
+
+		.pj_search_content {
+			float: left;
+			width: 955px;
+			height: auto;
+			margin: 0 auto;
+			border-left: 2px solid #d10101;
+			border-right: 2px solid #d10101;
+			background: url(/images/cert/nei-line.gif) center top no-repeat;
+			padding: 10px 10px 10px 30px;
+		}
+
+		.pj_search_term {
+			float: left;
+			width: 933px;
+			margin: 0 auto;
+		}
+
+		.pj_search_termtit {
+			float: left;
+			color: #d10101;
+			font-weight: bold;
+			font-size: 14px;
+			padding: 20px 0 10px;
+		}
+
+		.pj_search_termcon {
+			float: left;
+			width: 931px;
+			border: 1px solid #ccc;
+			background: #e6e6e6;
+			padding: 10px 0;
+			/*height:60px;overflow:hidden;*/
+		}
+
+		#wrap .nei-container .pj_search_content .pj_search_term .pj_search_termcon ul li {
+			height: 22px;
+			line-height: 22px;
+			margin: 3px 0;
+			display: inline;
+		}
+
+		.termcon_txt {
+			float: left;
+			width: 90px;
+			*width: 96px;
+			text-align: right;
+			line-height: 22px;
+			height: 22px;
+			margin: 3px 0;
+			overflow: hidden;
+		}
+
+		.termcon_from {
+			float: left;
+			width: 168px;
+			*width: 140px;
+			border: 1px solid #ccc;
+			height: 20px;
+			margin: 3px 0;
+			overflow: hidden;
+		}
+
+		.pj_search_result {
+			float: left;
+			width: 932px;
+			border-top: 0px solid #ccc;
+			border-left: 0px solid #ccc;
+			margin: 10px auto;
+		}
+
+		.pj_search_prev {
+			float: left;
+			width: 933px;
+			text-align: right;
+		}
+
+		.pj_search_resulttit {
+			width: 931px;
+			background: #e6e6e6;
+			height: 30px;
+			line-height: 30px;
+		}
+
+		.pj_tablelist1 {
+			float: left;
+			width: 301px;
+			border-right: 1px solid #ccc;
+			border-bottom: 1px solid #ccc;
+			height: 30px;
+			line-height: 30px;
+			text-align: left;
+			text-indent: 10px;
+		}
+
+		.pj_tablelist3 {
+			float: left;
+			width: 71px;
+			border-right: 1px solid #ccc;
+			border-bottom: 1px solid #ccc;
+			height: 30px;
+			line-height: 30px;
+			text-align: center;
+		}
+
+		.pj_tablelist4 {
+			float: left;
+			width: 146px;
+			border-right: 1px solid #ccc;
+			border-bottom: 1px solid #ccc;
+			height: 30px;
+			line-height: 30px;
+			text-align: center;
+		}
+
+		.pj_tablelist6 {
+			float: left;
+			width: 137px;
+			border-right: 1px solid #ccc;
+			border-bottom: 1px solid #ccc;
+			height: 30px;
+			line-height: 30px;
+			text-align: center;
+		}
+
+		.pj_tablelist7 {
+			float: left;
+			width: 137px;
+			border-right: 1px solid #ccc;
+			border-bottom: 1px solid #ccc;
+			height: 30px;
+			line-height: 30px;
+			text-align: center;
+		}
+
+		.pj_tablelist8 {
+			float: left;
+			width: 132px;
+			border-right: 1px solid #ccc;
+			border-bottom: 1px solid #ccc;
+			height: 30px;
+			line-height: 30px;
+			text-align: center;
+		}
+
+		.pj_search_bottom {
+			float: left;
+			width: 999px;
+			height: 10px;
+			margin: 0 auto;
+			background: url(/images/cert/nei-search_bottom.gif) no-repeat;
+		}
+
+		.pj_top {
+			height: 90px;
+			background: url(/images/cert/pjjg_tit.gif) no-repeat;
+			padding: 0 70px;
+			width: 860px;
+		}
+
+		/*.pj_top{width:776px;height:10px;background:url(/images/index/pjjg_tit2.gif) no-repeat;padding:0 114px;}*/
+		.pj_content {
+			float: left;
+			height: auto;
+			width: 1000px;
+			background: url(/images/cert/pjjg_con.gif) repeat-y;
+		}
+
+		/*.pj_content{float:left;border-left:2px solid #d10101;border-right:2px solid #d10101;width:950px;height:auto;}*/
+		.pj_contitle {
+			font-size: 28px;
+			font-weight: bold;
+			text-align: center;
+			padding-bottom: 20px;
+			padding: 0 70px;
+		}
+
+		.pj_term {
+			background: url(/images/cert/nei-line2.gif) center top no-repeat;
+			padding: 0 70px;
+			width: 860px;
+			height: auto;
+		}
+
+		.pj_term_result {
+			padding: 40px 24px 10px;
+			_padding: 40px 0px 10px;
+			color: #d10101;
+			font-weight: bold;
+			font-size: 16px;
+		}
+
+		.pj_term_resultcon {
+			padding: 0 70px;
+			_padding: 0;
+		}
+
+		.pj_term_resultcon li {
+			float: left;
+			width: 330px;
+			*width: 350px;
+			margin: 5px;
+			line-height: 20px;
+		}
+
+		.pj_message {
+			float: left;
+			padding: 0 114px;
+			margin: 30px auto;
+		}
+
+		.pj_bottom {
+			float: left;
+			height: 92px;
+			width: 1000px;
+			background: url(/images/cert/pjjg_bot.gif) no-repeat;
+		}
+	</style>
+</head>
+
+<body>
+	<div class="nei-container">
+		<div class="pj_top" align="center">
+			<div style="width:100%;text-align:center;padding-top:36px" align="center">
+				<table border="0" cellpadding="3" align="center" height="63" width="100%">
+					<tbody>
+						<tr>
+							<td align="center" style="font-size:16pt;font-family:黑体;line-height:1.5">
+								优赛创新体系标准化研究院<br>
+								<div style="padding-top:5px">高级研究员信息</div>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+
+		<div class="pj_content">
+			<div style="float:left;">
+				<div class="pj_term_resultcon">
+
+					<div style="width:100%;text-align:left;padding:5px 0px">
+						<div align="center" style="padding:15px 0px"><img src="/images/cert/nei-line.gif"></div>
+						<table border="0" cellpadding="3" width="860" align="center">
+
+							<tbody>
+								<tr>
+									<td style="padding-top:10px" valign="top">
+
+										<table border="1" cellpadding="3" cellspacing="1" width="100%"
+											bordercolor="#dedede" align="center" bgcolor="#dedede"
+											style="font-size:11pt;font-family:宋体,新宋体">
+											<tbody>
+												<tr bgcolor="#FFFFFF">
+													<td style="color:#666" align="right" width="90" height="37"
+														nowrap="">证书编号：</td>
+													<td style="padding:0px 5px"><span datafld="expertNumber"></span>
+													</td>
+													<td style="color:#666" align="right" width="90" height="37"
+														nowrap="">专家级别：</td>
+													<td style="padding:0px 5px" width="270" nowrap="" id="levelText">
+														<span datafld="level"></span></td>
+												</tr>
+
+												<tr bgcolor="#FFFFFF">
+													<td style="color:#666" align="right" height="37">姓　　名：</td>
+													<td colspan="3" style="font-family:宋体,新宋体;padding:0px 5px;"><span
+															datafld="realName"></span></td>
+												</tr>
+
+
+												<tr bgcolor="#FFFFFF">
+													<td style="color:#666" align="right" height="37">身份证号：</td>
+													<td colspan="3" style="padding:0px 5px"><span
+															datafld="idNumber"></span></td>
+												</tr>
+
+												<tr bgcolor="#FFFFFF">
+													<td style="color:#666" align="right" height="37">行业类别：</td>
+													<td colspan="3" style="padding:0px 5px">
+														<span datafld="industryCode"> </span>
+													</td>
+												</tr>
+
+												<tr bgcolor="#FFFFFF">
+													<td style="color:#666" align="right" height="37" nowrap="">有效期至：
+													</td>
+													<td colspan="3" style="padding:0px 5px"><span
+															datafld="validDate"></span></td>
+												</tr>
+												<tr bgcolor="#FFFFFF">
+													<td style="font-size:11pt" colspan="4">
+														<div
+															style="color:#666;font-weight:bold;font-family:黑体;font-size:12pt;padding-top:10px">
+															<span
+																style="display:inline-block;text-align:right;width:90px">介绍信息：</span>
+														</div>
+														<div
+															style="color:#555;padding:10px 25px;font-size:10pt;line-height:1.8">
+															<span datafld="workHistory"></span>
+														</div>
+													</td>
+												</tr>
+											</tbody>
+										</table>
+									</td>
+									<td width="133" style="padding-left:10px;padding-top:10px" valign="top">
+										<img datafld="photoUrl" src="" height="188" width="133" border="1"
+											style="border:1px solid #cdcdcd;">
+										<div style="padding-top:22px">
+											<div>
+
+												<img datafld="qrcode" src="" height="133" width="133" border="1"
+													style="border:1px solid #cdcdcd">
+												<div align="center" style="padding-top:8px;font-size:9pt">手机扫码查询<div>
+													</div>
+												</div>
+											</div>
+										</div>
+									</td>
+								</tr>
+
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="pj_bottom">
+			<div style="padding-top:46px"></div>
+		</div>
+	</div>
+	<script type="text/javascript">
+		let href = window.location.href;
+		let id = href.split("?")[1];
+		let levelArray = ['特聘专家', '高级研究员']
+		editPersonnel(id);
+		//获取数据
+		function editPersonnel(id) {
+			$.ajax({
+				type: "get",
+				url: "http://" + location.hostname + "/api/expert/detail/" + id,
+				dataType: "json",
+				contentType: "application/json;charset=UTF-8",
+				success: function (result) {
+					var o = result.data;
+					$("*[datafld]").each(function () {
+						var attr = $(this).attr("datafld");
+						var v = o[attr];
+						switch (this.tagName) {
+							case "SPAN":
+								if (typeof v !== "undefined") {
+									if (attr === "level") {
+										v = levelArray[v]
+										$(this).html(v);
+									} else {
+										v = v.replace(/\n/g, "<br />");
+										$(this).html(v);
+									}
+
+								}
+								break;
+							case "IMG":
+								$(this).attr("src", '/images/expert/' + v);
+								break;
+							default:
+								$(this).text(v);
+						}
+
+					});
+				}
+			});
+
+		}
+
+	</script>
+</body>
+
+</html>

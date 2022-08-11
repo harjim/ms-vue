@@ -78,6 +78,10 @@ export default {
       type: Object,
       required: true
     },
+    patentFiles: {
+      type: Object,
+      required: true
+    },
     currentStep: {
       type: Number,
       default: 0
@@ -164,14 +168,30 @@ export default {
     },
     async onSubmit () {
       try {
+        switch (this.currentStep) {
+          case 6:
+            if (!(this.patentFiles[5] && this.patentFiles[5].length)) {
+              this.$message.error('需上传授权通知书, 请上传后重新操作!')
+              return
+            }
+            break
+          case 7:
+            if (!(this.patentFiles[11] && this.patentFiles[11].length)) {
+              this.$message.error('需上传办登缴费, 请上传后重新操作!')
+              return
+            }
+            break
+          default:
+            break
+        }
         const result = await this.onSave(true)
         if (result) {
-          const parmas = {
+          const params = {
             pass: true,
             instanceId: this.row.instanceId,
             nodeId: this.row.curNodeId
           }
-          this.$http.post('/patentPlanNew/patentAudit', parmas).then(res => {
+          this.$http.post('/patentPlanNew/patentAudit', params).then(res => {
             if (res.success && res.data) {
               this.$message.success('提交成功')
               this.$emit('update')

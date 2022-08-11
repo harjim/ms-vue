@@ -6,6 +6,7 @@
     v-model="visible"
     @ok="handleSubmit"
     :maskClosable="false"
+    destroyOnClose
   >
     <a-form @submit="handleSubmit" :form="form">
       <a-form-item label="上级菜单:" :labelCol="labelCol" :wrapperCol="wrapperCol">
@@ -17,8 +18,9 @@
           treeNodeFilterProp="title"
           placeholder="Please select"
           treeDefaultExpandAll
+          @change="changeParentId"
         ></a-tree-select>
-        <a-input v-decorator="['level']" style="display:none" />
+        <a-input v-decorator="['level']" style="display:none"/>
       </a-form-item>
 
       <a-form-item label="菜单类型" :labelCol="labelCol" :wrapperCol="wrapperCol">
@@ -34,11 +36,11 @@
       </a-form-item>
 
       <a-form-item label="菜单名称:" :labelCol="labelCol" :wrapperCol="wrapperCol">
-        <a-input v-decorator="['name', {rules:[{required: true, message: '请输入菜单名称或按钮名称'}]}]" />
+        <a-input v-decorator="['name', {rules:[{required: true, message: '请输入菜单名称或按钮名称'}]}]"/>
       </a-form-item>
 
       <a-form-item label="请求地址:" :labelCol="labelCol" :wrapperCol="wrapperCol">
-        <a-input v-decorator="['url', {rules:[{required: true, message: '请输入请求地址'}]}]" />
+        <a-input v-decorator="['url', {rules:[{required: true, message: '请输入请求地址'}]}]" @blur="wrapperPerms"/>
       </a-form-item>
 
       <a-form-item label="授权标识:" :labelCol="labelCol" :wrapperCol="wrapperCol">
@@ -55,7 +57,7 @@
       </a-form-item>
 
       <a-form-item label="图标:" :labelCol="labelCol" :wrapperCol="wrapperCol">
-        <a-input v-decorator="['icon', {rules:[{required: true, message: '请输入图标代码'}]}]" />
+        <a-input v-decorator="['icon', {rules:[{required: true, message: '请输入图标代码'}]}]"/>
       </a-form-item>
 
       <a-form-item v-if="msType === 1" label="平台" :labelCol="labelCol" :wrapperCol="wrapperCol">
@@ -175,12 +177,42 @@ export default {
           seq: record.seq.toString(),
           icon: record.icon,
           status: record.status,
-          remark: record.remark }
+          remark: record.remark
+        }
         if (this.msType === 2) {
           data.menuType = record.menuType
         }
         this.form.setFieldsValue(data)
       })
+    },
+    changeParentId (v) {
+      const deepSearch = (tree, v) => {
+        for (let i = 0; i < tree.length; i++) {
+          if (tree[i].children && tree[i].children.length > 0) {
+            deepSearch(tree[i].children, v)
+          }
+          if (v === tree[i].value) {
+            this.form.setFieldsValue({ seq: tree[i].children.length + 1 })
+            return
+          }
+        }
+      }
+
+      deepSearch(this.menuTree, v)
+    },
+    // 根据请求地址生成标识和icon
+    wrapperPerms (e) {
+      if (this.form.getFieldValue('perms')) return
+      const arr = e.target.value.split('/')
+      arr.splice(0, 1)
+      const result = arr.map(i => i.replace(i[0], i[0].toLowerCase())).join(':')
+      let iconTitle = ''
+      if (arr.length > 2) {
+        iconTitle = arr[arr.length - 1].replace(arr[arr.length - 1][0], arr[arr.length - 1][0].toLowerCase())
+      } else {
+        iconTitle = 'solution'
+      }
+      this.form.setFieldsValue({ perms: result, icon: iconTitle })
     },
     handleSubmit () {
       const { form: { validateFields } } = this
@@ -190,7 +222,8 @@ export default {
         if (!errors) {
           if (this.id === -1) {
             values.menuManageType = this.msType
-            this.$http.post('/menu/add', { name: values.name,
+            this.$http.post('/menu/add', {
+              name: values.name,
               remark: values.remark,
               type: values.type,
               parentId: values.parentId,
@@ -202,7 +235,8 @@ export default {
               status: values.status,
               menuManageType: this.msType,
               hasYearSelect: values.hasYearSelect,
-              menyTupe: values.menuType })
+              menyTupe: values.menuType
+            })
               .then(res => {
                 if (res.success && res.data) {
                   this.visible = false
@@ -214,7 +248,8 @@ export default {
               })
           } else {
             values.menuManageType = this.msType
-            this.$http.post('/menu/update', { id: this.id,
+            this.$http.post('/menu/update', {
+              id: this.id,
               name: values.name,
               remark: values.remark,
               type: values.type,
@@ -227,7 +262,8 @@ export default {
               status: values.status,
               menuManageType: this.msType,
               hasYearSelect: this.isHasYear,
-              menuType: values.menuType })
+              menuType: values.menuType
+            })
               .finally(res => {
                 this.confirmLoading = false
                 this.visible = false

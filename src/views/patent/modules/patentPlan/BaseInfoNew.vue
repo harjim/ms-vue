@@ -18,13 +18,14 @@
               <a-button size="small" v-else type="default" style="z-index: 1;" @click="editBase = false">取消</a-button>
             </span>
             <a-form-item label="专利需求" :required="canEdit">
-              <vxe-pulldown v-if="canEdit" ref="pulldown" style="width: 100%" @hide-panel="onHidePanel()">
+              <vxe-pulldown v-if="canEdit" ref="pulldown" style="width: 100%">
                 <template #default>
                   <a-input
-                    v-model="queryParams.customerName"
+                    v-model="customerName"
                     placeholder="请选择专利需求（可输入客户名称查询）"
                     @keyup="onPulldownKeyup"
                     @focus="onPulldownFocus"
+                    @blur="onPulldownBlur"
                   >
                     <a-icon slot="suffix" type="search" />
                   </a-input>
@@ -42,12 +43,13 @@
                       @cell-click="cellClickEvent"
                       resizable
                       auto-resize
+                      row-id="id"
                     >
                       <template #ownerName="{ row }">
-                        {{ row.ownerName.join(',') }}
+                        {{ row.ownerName }}
                       </template>
                       <template #techName="{ row }">
-                        {{ row.techName.join(',') }}
+                        {{ row.techName }}
                       </template>
                       <template #total="{ row }">
                         <a-tooltip placement="top">
@@ -382,6 +384,7 @@ export default {
       rds: [],
       fileList: [],
       queryParams: {},
+      customerName: '', // 专利需求框显示的内容
       tableData: [],
       pulldownTableColumn: [
         { field: 'demandNo', title: '编号', width: 150 },
@@ -551,15 +554,34 @@ export default {
         })
       return false
     },
-    // 下拉分页表格
+    // 当需求框获得焦点时显示下拉表格
     onPulldownFocus () {
-      this.queryParams.customerName = undefined
       this.$refs.pulldown.showPanel()
-      this.onPulldownKeyup()
+      if (this.dropdownParams.customerName) {
+        this.customerName = ''
+        // 有确定过需求且有前一次的查询的时候,清除掉查询关键字
+        if (this.queryParams.customerName) {
+          this.queryParams.customerName = ''
+          this.$refs.table.refresh(true)
+        }
+      } else {
+        // 没有确定过需求保留前一次的查询关键字
+        this.customerName = this.queryParams.customerName
+      }
     },
     onPulldownKeyup: _.debounce(function () {
-      this.$refs.table.refresh(true)
+      if (this.queryParams.customerName !== this.customerName) {
+        this.queryParams.customerName = this.customerName
+        this.$refs.table.refresh(true)
+      }
     }, 500),
+    onPulldownBlur () {
+      if (this.dropdownParams.customerName) {
+        this.customerName = this.dropdownParams.customerName
+      } else {
+        this.customerName = this.queryParams.customerName
+      }
+    },
     cellClickEvent ({ row }) {
       this.dropdownParams = {
         id: row.id,
@@ -570,17 +592,14 @@ export default {
         companyId: row.companyId,
         customerName: `【${row.demandNo}】${row.customerName}-${row.year}`
       }
-      this.queryParams.customerName = this.dropdownParams.customerName
+      this.customerName = this.dropdownParams.customerName
       this.$refs.pulldown.hidePanel()
       this.form.setFieldsValue({
         submitDate: row.planSubmitDate ? moment(row.planSubmitDate) : undefined,
-        owner: row.ownerId ? { realName: row.ownerName[0], id: row.ownerId } : undefined
+        owner: row.ownerId ? { realName: row.ownerName, id: row.ownerId } : undefined
       })
       this.form.setFieldsValue({ projectId: undefined })
       this.getRds({ companyId: row.companyId, year: row.year })
-    },
-    onHidePanel () {
-      this.queryParams.customerName = this.dropdownParams.customerName
     },
     editBaseMessage () {
       this.editBase = true
@@ -615,13 +634,16 @@ export default {
         }
         this.getRds({ companyId: this.record.companyId, year: this.record.year })
         this.form.setFieldsValue(params)
+        this.customerName = this.dropdownParams.customerName
         // 打开下拉容器才能修改值，todo优化
+        /*
         if (!this.editBase) {
           this.$refs.pulldown.showPanel().then(() => {
             this.queryParams.customerName = this.dropdownParams.customerName
             this.$refs.pulldown.hidePanel()
           })
         }
+        */
       })
     }
   }

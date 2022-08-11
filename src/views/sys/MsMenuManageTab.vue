@@ -2,7 +2,7 @@
   <a-card :bordered="false">
     <a-form layout="inline">
       <a-form-item label="菜单名称">
-        <a-input v-model="queryParam.menuName" placeholder="请输入菜单名称" style="width:180px" />
+        <a-input v-model="queryParam.menuName" placeholder="请输入菜单名称" style="width:180px"/>
       </a-form-item>
       <a-form-item label="状态">
         <a-select placeholder="请选择" style="width:180px" v-model="queryParam.status">
@@ -34,13 +34,13 @@
     >
       <span slot="action" slot-scope="text, record">
         <a @click="handleEdit(record, menuTree)" v-if="$auth('sys:menu:edit')">编辑</a>
-        <a-divider type="vertical" />
+        <a-divider type="vertical"/>
         <a-popconfirm title="是否确定删除?" @confirm="handleDel(record)" v-if="$auth('sys:menu:del')">
           <a>删除</a>
         </a-popconfirm>
       </span>
     </a-table>
-    <menu-modal ref="modal" @ok="handleOk"></menu-modal>
+    <menu-modal ref="modal" @ok="handleOk" @afterClose="updateTree"></menu-modal>
   </a-card>
 </template>
 
@@ -334,7 +334,7 @@ export default {
     loadTree () {
       this.$http.get('/menu/tree', { params: { menuManageType: this.msType } })
         .then(res => {
-          this.menuTree = res.data
+          this.menuTree = [...res.data]
           this.menuId = this.menuTree[0].key // 获取第一个菜单id
           generateList(this.menuTree)
           this.getData()
@@ -344,7 +344,7 @@ export default {
       this.$http.post('/menu/del', { id: record.id, menuManageType: this.msType }).then(res => {
         this.$message.success('删除成功')
       }).finally(res => {
-        this.getData()
+        this.loadTree()
       })
     },
     handleEdit (record, menuTree) {
@@ -354,13 +354,17 @@ export default {
     handleadd (menuTree) {
       this.$refs.modal.add(this.msType, menuTree)
     },
+    async updateTree () {
+      await this.loadTree()
+    },
     handleOk (flag) {
       if (flag) {
         this.$message.success('添加成功')
+        this.loadTree()
       } else {
         this.$message.success('更新成功')
+        this.getData()
       }
-      this.getData()
     },
     getData () {
       this.queryParam.menuManageType = this.msType

@@ -61,6 +61,9 @@
         <a-form-item label="当前处理人">
           <a-input v-model="queryParams.auditUsers" placeholder="请输入当前处理人" allowClear />
         </a-form-item>
+        <a-form-item label="专利名称">
+          <a-input v-model="queryParams.confirmName" placeholder="请输入专利名称" allowClear />
+        </a-form-item>
       </TableSearchbar>
       <ystable
         ref="table"

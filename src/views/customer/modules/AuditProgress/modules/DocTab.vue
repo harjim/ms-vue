@@ -83,19 +83,23 @@
         </span>
         <span>文档数:</span> <span
           class="value"
-        >{{ currentProject.totalDocNum ? currentProject.totalDocNum : '-'
+        >{{
+          currentProject.totalDocNum ? currentProject.totalDocNum : '-'
         }}</span>
         <span class="rejected">可审核:</span> <span
           class="value rejected"
-        >{{ currentProject.auditDocNum ? currentProject.auditDocNum : '-'
+        >{{
+          currentProject.auditDocNum ? currentProject.auditDocNum : '-'
         }}</span>
         <span class="audited">已通过:</span> <span
           class="value audited"
-        >{{ currentProject.passNum ? currentProject.passNum : '-'
+        >{{
+          currentProject.passNum ? currentProject.passNum : '-'
         }}</span>
         <span class="underwayed">已提交:</span> <span
           class="value underwayed"
-        >{{ currentProject.submitNum ? currentProject.submitNum : '-'
+        >{{
+          currentProject.submitNum ? currentProject.submitNum : '-'
         }}</span>
       </div>
       <div class="doc_wrap">
@@ -137,9 +141,11 @@
               </template>
               <span
                 :class="{'indent-title':!(item.hasPermission || item.done)}"
-              >{{ item.no
+              >{{
+                item.no
               }}</span>
-              {{ item.isTitle ? stageStr(item, item.stageType) : item.docFileName
+              {{
+                item.isTitle ? stageStr(item, item.stageType) : item.docFileName
               }}
             </template>
           </file-item>
@@ -216,11 +222,7 @@
 </template>
 <script>
 import { ProjectSelect } from '@/components/Selects'
-import {
-  isEditStatus,
-  statusColor,
-  statusMap
-} from '@/utils/processDoc/auditStatus'
+import { isEditStatus, statusColor, statusMap } from '@/utils/processDoc/auditStatus'
 import { cloneDeep } from 'lodash'
 import FileItem from './FileItem'
 import AuditLog from './AuditLog'
@@ -495,7 +497,8 @@ export default {
         filename: this.record.companyName + '-' + this.currentProject.rdTitle + '-' + this.currentProject.pname + '过程文件.pdf',
         rdTitle: this.currentProject.rdTitle,
         hasCatalogue: true,
-        hasBudget: this.hasProjectReport
+        hasBudget: this.hasProjectReport,
+        hasCover: true
       }
       this.$refs.exportDoc.show(datas)
     },

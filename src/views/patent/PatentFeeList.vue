@@ -62,6 +62,9 @@
             <span style="margin-right: 10px;" v-if="$auth('patent:PatentFeeList:del')">
               <a-button type="primary" :disabled="selectedRowKeys.length <= 0" @click="dels">删除</a-button>
             </span>
+            <span style="margin-right: 10px;" v-if="$auth('patent:PatentFeeList:export')">
+              <a-button type="primary" @click="exportFile" :loading="exportLoading">导出</a-button>
+            </span>
           </template>
           <vxe-table-column type="checkbox" width="40" align="center" fixed="left"/>
           <vxe-table-column
@@ -82,6 +85,7 @@
           <vxe-table-column field="limitDate" width="160" title="缴费期限" align="center" remoteSort></vxe-table-column>
           <vxe-table-column field="amount" width="100" title="缴费金额" align="center" remoteSort></vxe-table-column>
           <vxe-table-column field="mainTypeNo" width="260" title="主分类号" align="center" remoteSort></vxe-table-column>
+          <vxe-table-column field="companyName" width="260" title="客户名称" align="center" remoteSort></vxe-table-column>
           <vxe-table-column field="pay" width="100" title="是否缴费" align="center" remoteSort>
             <template v-slot="{ row }">
               {{ row.pay? '是': '否' }}
@@ -153,6 +157,12 @@ const columns = [{
   dataIndex: 'mainTypeNo',
   key: 'mainTypeNo',
   title: '主分类号',
+  align: 'center',
+  width: '260px'
+}, {
+  dataIndex: 'companyName',
+  key: 'companyName',
+  title: '客户名称',
   align: 'center',
   width: '260px'
 }, {
@@ -237,7 +247,8 @@ export default {
             return res.data
           })
       },
-      options: {}
+      options: {},
+      exportLoading: false
     }
   },
   methods: {
@@ -261,6 +272,13 @@ export default {
     redata () {
       this.$refs.table.refresh(true)
       this.selectedRowKeys = []
+    },
+    exportFile () {
+      this.exportLoading = true
+      // this.$exportData('/projectProgress/export', this.getParams(), `归集审核列表.xls`, this.$message)
+      this.$exportData('/rsPatentCost/export', this.queryParam, '专利费用列表.xls', this.$message).finally(() => {
+        this.exportLoading = false
+      })
     },
     dels () {
       this.spin = true

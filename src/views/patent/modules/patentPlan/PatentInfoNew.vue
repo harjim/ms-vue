@@ -111,20 +111,20 @@
           <a-col :span="6">
             <a-form-item label="提交国知局日期">
               <div v-if="!inputRequired">{{ patentPlanInfo.submittedDate ? moment(patentPlanInfo.submittedDate).format('YYYY-MM-DD'): '-' }}</div>
-              <a-date-picker v-else style="width:100%" v-decorator="['submittedDate', {rules:[{required: false, message: '请选择提交国知局日期'}]}]" placeholder="请选择提交国知局日期" />
+              <a-date-picker v-else style="width:100%" v-decorator="['submittedDate', {rules:[{required: true, message: '请选择提交国知局日期'}]}]" placeholder="请选择提交国知局日期" />
             </a-form-item>
           </a-col>
           <a-col :span="6">
             <a-form-item label="受理通知日期">
               <div v-if="!inputRequired">{{ patentPlanInfo.acceptNoticeDate ? moment(patentPlanInfo.acceptNoticeDate).format('YYYY-MM-DD'): '-' }}</div>
-              <a-date-picker v-else style="width:100%" v-decorator="['acceptNoticeDate', {rules:[{required: false, message: '请选择受理通知日期'}]}]" placeholder="请选择受理通知日期" @change="acceptFeeDateChange" />
+              <a-date-picker v-else style="width:100%" v-decorator="['acceptNoticeDate', {rules:[{required: true, message: '请选择受理通知日期'}]}]" placeholder="请选择受理通知日期" @change="acceptFeeDateChange" />
             </a-form-item>
           </a-col>
           <a-col :span="6">
             <!-- 修改时间 -->
             <a-form-item label="受理缴费截至日期">
               <div v-if="!inputRequired">{{ patentPlanInfo.acceptFeeDate ? moment(patentPlanInfo.acceptFeeDate).format('YYYY-MM-DD'): patentPlanInfo.acceptNoticeDate ? moment(patentPlanInfo.acceptNoticeDate).add(60, 'days').format('YYYY-MM-DD'): '-' }}</div>
-              <a-date-picker v-else style="width:100%" v-decorator="['acceptFeeDate', {rules:[{required: false, message: '请选择受理缴费截至日期'}]}]" placeholder="请选择受理缴费截至日期" />
+              <a-date-picker v-else style="width:100%" v-decorator="['acceptFeeDate', {rules:[{required: true, message: '请选择受理缴费截至日期'}]}]" placeholder="请选择受理缴费截至日期" />
             </a-form-item>
           </a-col>
           <a-col :span="6">
@@ -136,7 +136,7 @@
                 :min="0"
                 :precision="0"
                 style="width:100%"
-                v-decorator="['acceptFee', {rules:[{required: false, message: '请输入应缴费用(元)'}]}]"
+                v-decorator="['acceptFee', {rules:[{required: true, message: '请输入应缴费用(元)'}]}]"
                 placeholder="请输入应缴费用(元)" />
             </a-form-item>
           </a-col>
@@ -180,6 +180,10 @@ export default {
       type: Object,
       required: true
     },
+    patentFiles: {
+      type: Object,
+      required: true
+    },
     auditPermission: {
       type: Boolean,
       default: false
@@ -217,6 +221,11 @@ export default {
       if (this.inputRequired) {
         this.$nextTick(() => {
           const { applyDateTime, mainType, patentName } = this.patentPlan
+          // const mainTypes = this.patentType.filter(elem => elem.value === confirmType)[0]
+          // let type = mainType
+          // if (!mainType && mainTypes && mainTypes.label) {
+          //   type = mainTypes.label
+          // }
           const { confirmType, confirmName } = this.row
           const { submittedDate, acceptNoticeDate, acceptFeeDate, acceptFee } = this.patentPlanInfo
           const formParams = Object.assign(this.patentPlan, {
@@ -269,6 +278,10 @@ export default {
     },
     async onSubmit () {
       try {
+        if (!(this.patentFiles[3] && this.patentFiles[3].length)) {
+          this.$message.error('需上传受理通知书, 请上传后重新操作!')
+          return
+        }
         const result = await this.onSave(true)
         if (result) {
           const parmas = {
@@ -292,6 +305,10 @@ export default {
         pass: true,
         instanceId: this.row.instanceId,
         nodeId: this.row.curNodeId
+      }
+      if (!(this.patentFiles[10] && this.patentFiles[10].length)) {
+        this.$message.error('需上传受理缴费, 请上传后重新操作!')
+        return
       }
       this.$http.post('/patentPlanNew/patentAudit', parmas).then(res => {
         if (res.success && res.data) {

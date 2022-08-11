@@ -105,7 +105,8 @@
                 />
               </a-form-item>
               <div style="marginTop: 8px;">
-                <span style="margin-right: 10px">当前得分：{{ totalScore
+                <span style="margin-right: 10px">当前得分：{{
+                  totalScore
                 }}</span>
                 <span>次数：{{ scoreCount }}</span>
               </div>
@@ -468,7 +469,9 @@ export default {
             isFinal,
             qualityId,
             month,
-            engineerId
+            engineerId,
+            scores,
+            totalScore
           },
           errorMessage
         }) => {
@@ -484,7 +487,7 @@ export default {
             this.notChecked = false
             this.month = month
             this.score = 0
-            this.scores = {
+            this.scores = scores || {
               1: 0,
               2: 0,
               3: 0,
@@ -504,6 +507,14 @@ export default {
                 weight: weight,
                 month: moment()
               })
+              if (scores) {
+                const temp = { ...Array.from({ length: 7 }, (item, index) => scores[index]) }
+                delete temp[0]
+                this.form.setFieldsValue({
+                  totalScore: totalScore,
+                  ...temp
+                })
+              }
             })
           } else {
             this.$message.error(errorMessage)

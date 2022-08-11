@@ -78,7 +78,7 @@ function request (config) {
     }
   } else if (config.method === 'get' && config.params) {
     config.paramsSerializer = function (params) {
-      return Qs.stringify(params, { arrayFormat: 'repeat' })
+      return Qs.stringify(params, { arrayFormat: 'repeat', allowDots: true })
     }
     for (const key in config.params) {
       if (moment.isMoment(config.params[key])) {

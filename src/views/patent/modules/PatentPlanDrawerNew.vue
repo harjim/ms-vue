@@ -55,19 +55,27 @@
                 :row="row"
                 :patentPlan="patentInfos.patentInfo || {}"
                 :patentPlanInfo="patentInfos.patentPlanInfo || {}"
+                :patentFiles="patentInfos.patentFiles || {}"
                 :auditPermission="patentInfos.auditPermission"
                 @update="update"></patent-info>
               <!-- 授权信息 -->
               <authorize
                 :currentStep="currentStep"
                 :row="row"
+                :patentFiles="patentInfos.patentFiles || {}"
                 :patentPlan="patentInfos.patentInfo || {}"
                 :patentPlanInfo="patentInfos.patentPlanInfo || {}"
                 :auditPermission="patentInfos.auditPermission"
                 @update="update"></authorize>
             </a-card>
             <!-- 审批 -->
-            <PatentAudit :currentStep="currentStep" :row="row" :auditPermission="patentInfos.auditPermission" @update="update"></PatentAudit>
+            <PatentAudit
+              ref="patentAudit"
+              :currentStep="currentStep"
+              :row="row"
+              :auditPermission="patentInfos.auditPermission"
+              :files="patentInfos.patentFiles || {}"
+              @update="update"></PatentAudit>
             <!-- 资料上传 -->
             <div>
               <patent-files
@@ -78,10 +86,11 @@
                 :onPreview="onPreview"
                 :files="patentInfos.patentFiles || {}"
                 :row="row"
+                :fileChange="fileChange"
                 :canUpload="canUpload"/>
             </div>
             <!-- 定稿 -->
-            <Finalization :currentStep="currentStep" :row="row" :auditPermission="patentInfos.auditPermission" @update="update"></Finalization>
+            <Finalization :files="patentInfos.patentFiles || {}" :currentStep="currentStep" :row="row" :auditPermission="patentInfos.auditPermission" @update="update"></Finalization>
           </a-col>
         </a-row>
       </a-spin>
@@ -167,60 +176,31 @@ export default {
       this.visible = true
     },
     view (record) {
-      this.title = '编辑专利申请'
       this.stepItemList = this.patentPlanProcessType
-      this.recordId = record.id
+      this.row = { ...record }
+      this.title = `编辑专利申请【${this.row.patentName}】`
+      this.currentStep = this.row.nodeNumber || 0
       this.load()
       this.visible = true
     },
     load () {
       this.spinning = true
-      this.loadBaseInfo().then(res1 => {
-        this.loadPatentInfo().then(res2 => {
+      this.$http.get('/patentPlanNew/getInfo', {
+        params: {
+          patentPlanId: this.row.id,
+          patentNo: this.row.patentNo
+        }
+      }).then(res => {
+        if (res.success && res.data) {
+          this.patentInfos = res.data
           this.handleNodeData(this.patentInfos)
-          this.spinning = false
-        })
-      }).catch(() => {})
-    },
-    loadBaseInfo () {
-      return new Promise((resolve, reject) => {
-        this.$http.get('/patentPlanNew/getList', {
-          params: {
-            pageNo: 1,
-            pageSize: 10,
-            id: this.recordId
-          }
-        }).then(res => {
-          if (res.success && res.data.data.length > 0) {
-            this.row = res.data.data[0]
-            this.title = `编辑专利申请【${this.row.patentName}】`
-            this.currentStep = this.row.nodeNumber || 0
-            resolve(true)
-          } else {
-            this.$message.error(res.errorMessage || '加载基本信息失败')
-            reject(new Error())
-          }
-        })
-      })
-    },
-    loadPatentInfo () {
-      return new Promise((resolve, reject) => {
-        this.patentInfos = { patentInfo: {} }
-        this.$http.get('/patentPlanNew/getInfo', {
-          params: {
-            patentPlanId: this.row.id,
-            patentNo: this.row.patentNo
-          }
-        }).then(res => {
-          if (res.success && res.data) {
-            this.patentInfos = res.data
-          } else {
-            this.$message.error(res.errorMessage || '加载专利信息失败，请稍后重试。')
-          }
-          resolve(true)
-        }).catch(err => {
-          reject(new Error(err))
-        })
+        } else {
+          this.$message.error(res.errorMessage || '加载专利信息失败，请稍后重试。')
+        }
+      }).catch(err => {
+        this.$message.error(err.message || '加载专利信息失败，请稍后重试。')
+      }).finally(() => {
+        this.spinning = false
       })
     },
     // 初始化节点数据
@@ -286,6 +266,11 @@ export default {
       setTimeout(() => {
         this.$emit('update')
       }, 500)
+    },
+    fileChange () {
+      if (this.$refs.patentAudit && this.$refs.patentAudit.loadFilterProcess) {
+        this.$refs.patentOperation.loadFilterProcess()
+      }
     }
   }
 }
@@ -313,12 +298,13 @@ export default {
   }
   .ant-form-item-control-wrapper {
     color: #000000;
+    height: 27px;
   }
   // 不是编辑状态
   .status-not-edit {
-    .ant-form-item {
-      margin-bottom: 12px;
-    }
+    // .ant-form-item {
+    //   margin-bottom: 12px;
+    // }
     .ant-form-item-label {
       line-height: 24px;
     }
@@ -347,6 +333,10 @@ export default {
       color: #00000073;
     }
   }
+}
+
+/deep/ .ant-form-item-control{
+  line-height: 24px;
 }
 
 </style>

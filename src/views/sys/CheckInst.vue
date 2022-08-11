@@ -85,6 +85,28 @@
         show-overflow="tooltip"
       />
       <vxe-table-column
+        title="附件"
+        field="filePath"
+        key="filePath"
+        :width="150"
+      >
+        <template v-slot="{row}">
+          <div v-for="i in row.filePath.split(',')" :key="i">
+            <a title="点击下载" @click="downloadFile(i)">{{ i.substring(i.lastIndexOf('/') + 1, i.length) }}</a>
+            <a-tooltip
+              style="cursor:pointer"
+              placement="top"
+              @click="preview(i, i.substring(i.lastIndexOf('/') + 1, i.length))"
+            >
+              <template slot="title">
+                <span>预览</span>
+              </template>
+              <a-icon type="eye" style="margin-left: 5px;"/>
+            </a-tooltip>
+          </div>
+        </template>
+      </vxe-table-column>
+      <vxe-table-column
         title="联系人"
         field="linkMan"
         key="linkMan"
@@ -131,7 +153,7 @@
       />
       <vxe-table-column title="操作" width="150" align="center" fixed="right">
         <template v-slot="{ row }">
-          <a v-if="$auth('sys:checkInst:edit')">编辑</a>
+          <a v-if="$auth('sys:checkInst:edit')" @click="$refs.instModal.open(row)">编辑</a>
           <a-divider type="vertical" v-if="$auth('sys:checkInst:edit')"/>
           <a-popconfirm v-if="$auth('sys:checkInst:del')" title="是否确定删除?" @confirm="handleDel(row)">
             <a>删除</a>
@@ -139,7 +161,8 @@
         </template>
       </vxe-table-column>
     </ystable>
-    <AddCheckInst ref="instModal"/>
+    <preview-modal ref="previewModal"/>
+    <AddCheckInst ref="instModal" @refresh="refresh" :preview="preview"/>
   </a-card>
 </template>
 
@@ -147,12 +170,14 @@
 import ystable from '@/components/Table/ystable'
 import { message } from 'ant-design-vue'
 import AddCheckInst from '@/views/sys/modules/AddCheckInst'
+import PreviewModal from '@/components/PreviewModal'
 
 export default {
   name: 'CheckInst',
   components: {
     AddCheckInst,
-    ystable
+    ystable,
+    PreviewModal
   },
   data () {
     return {
@@ -204,6 +229,20 @@ export default {
           message.error(errorMessage)
         }
       })
+    },
+    preview (filePath, filename) {
+      if (filePath === '') {
+        this.$message.info('请先上传文件')
+        return
+      }
+      this.$refs.previewModal.show(filePath, filename)
+    },
+    downloadFile (file) {
+      const name = file.substring(file.lastIndexOf('/') + 1, file.length)
+      this.$exportData('/document/downloadFile', {
+        fileName: name,
+        filePath: file
+      }, name, this.$message)
     }
   }
 }

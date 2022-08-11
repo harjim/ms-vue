@@ -102,6 +102,7 @@
 
 <script>
 import { getStore, setStore } from '@/utils/storage'
+
 export default {
   data () {
     return {

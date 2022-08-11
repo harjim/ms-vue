@@ -65,6 +65,10 @@ export default {
     auditPermission: {
       type: Boolean,
       default: false
+    },
+    files: {
+      type: Object,
+      default: () => {}
     }
   },
   computed: {
@@ -83,13 +87,17 @@ export default {
         if (errors) {
           return
         }
-        const parmas = {
+        if (!(this.files[2] && this.files[2].length)) {
+          this.$message.error('需上传定稿, 请上传文件后重新操作!')
+          return
+        }
+        const params = {
           ...values,
           pass: true,
           instanceId: this.row.instanceId,
           nodeId: this.row.curNodeId
         }
-        this.$http.post('/patentPlanNew/patentAudit', parmas).then(res => {
+        this.$http.post('/patentPlanNew/patentAudit', params).then(res => {
           if (res.success && res.data) {
             this.$message.success('操作成功')
             this.$emit('update')

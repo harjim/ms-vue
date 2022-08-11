@@ -1,8 +1,8 @@
 <!--
  * @Author: lzh
  * @Date: 2022-02-09 08:35:36
- * @LastEditors: lzh
- * @LastEditTime: 2022-03-18 17:32:03
+ * @LastEditors: zdf
+ * @LastEditTime: 2022-08-05 19:39:06
  * @Description: 需求列表(新)
  * @FilePath: \MS-VUE\src\views\patent\Application.vue
 -->
@@ -31,7 +31,7 @@
           sTitle="realName"
           :multiple="false"
           placeholder="请输入业务员"
-          v-model="queryParams.ownerId"
+          v-model="queryOwner"
         />
       </a-form-item>
       <a-form-item label="工程师">
@@ -41,7 +41,7 @@
           sTitle="realName"
           :multiple="false"
           placeholder="请输入工程师"
-          v-model="queryParams.techId"
+          v-model="queryTech"
         />
       </a-form-item>
       <a-form-item label="类型">
@@ -167,7 +167,7 @@
         field="total"
         title="需求数量"
         width="100"
-        align="center"
+        align="right"
         header-align="center"
         remoteSort>
         <template #default="{ row }">
@@ -183,25 +183,35 @@
         </template>
       </vxe-table-column>
       <vxe-table-column
+        field="total"
+        title="申请数"
+        width="100"
+        align="right"
+        header-align="center">
+        <template #default="{ row }">
+          <div>{{ row.noOfPlan }}</div>
+        </template>
+      </vxe-table-column>
+      <vxe-table-column
         field="ownerName"
         title="业务员"
         width="100"
-        align="center"
+        align="left"
         header-align="center"
       >
         <template #default="{row}">
-          {{ row.ownerName.join(',') || '-' }}
+          {{ row.ownerName || '-' }}
         </template>
       </vxe-table-column>
       <vxe-table-column
         field="techName"
         title="工程师"
         width="150"
-        align="center"
+        align="left"
         header-align="center"
       >
         <template #default="{row}">
-          {{ row.techName.join(',') || '-' }}
+          {{ row.techName || '-' }}
         </template>
       </vxe-table-column>
       <vxe-table-column
@@ -321,6 +331,8 @@ export default {
       },
       selectedRows: [],
       queryParams: {},
+      queryOwner: undefined,
+      queryTech: undefined,
       tableData: [
         { title: '1.委托书', type: 'proxyPath' },
         { title: '2.营业执照', type: 'blPath' },
@@ -360,13 +372,13 @@ export default {
   },
   methods: {
     getParams () {
-      const params = Object.assign({}, this.queryParams)
-      params.customerName = params.customerName || undefined
-      if (params.ownerId && params.ownerId.id) {
-        params.ownerId = params.ownerId.id
+      const params = { ...this.queryParams }
+      params.memberInfo = {}
+      if (this.queryOwner && this.queryOwner.id) {
+        params.memberInfo.ownerId = this.queryOwner.id
       }
-      if (params.techId && params.techId.id) {
-        params.techId = params.techId.id
+      if (this.queryTech && this.queryTech.id) {
+        params.memberInfo.techIds = [this.queryTech.id]
       }
       return params
     },

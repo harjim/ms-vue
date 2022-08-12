@@ -9,17 +9,22 @@
 <template>
   <tab-layout>
     <template #up>
-      <div style="padding-top:10 px; height: 100%; overflow: auto;">
+      <div style="padding-top:10px; height: 100%; overflow: auto;">
         <a-tabs default-active-key="1" tab-position="left">
           <a-tab-pane key="1" tab="研发架构">
             <div style="overflow: auto;">
               <img v-if="orgPath" :src="`${orgPath}?v=${now}`" alt="研发组织架构"/>
-              <a-alert v-else message="组织架构图片未生成,请到企业端研发组织架构界面生成组织架构图片" type="info" show-icon style="color: red; margin: 15px  0px;"/>
+              <a-alert
+                v-else
+                message="组织架构图片未生成,请到企业端研发组织架构界面生成组织架构图片"
+                type="info"
+                show-icon
+                style="color: red; margin: 15px  0px;"/>
             </div>
           </a-tab-pane>
           <a-tab-pane key="2" tab="技术中心简介">
             <p v-if="desc">{{ desc }}</p>
-            <a-empty v-else description="暂无内容" />
+            <a-empty v-else description="暂无内容"/>
           </a-tab-pane>
         </a-tabs>
       </div>
@@ -33,6 +38,7 @@
 import TabLayout from './TabLayout'
 import AuditLog from './AuditLog'
 import { now } from 'lodash'
+
 export default {
   name: 'FrameworkTab',
   components: {
@@ -42,11 +48,15 @@ export default {
   props: {
     record: {
       type: Object,
-      default: () => { return {} }
+      default: () => {
+        return {}
+      }
     },
     mode: {
       type: Object,
-      default: () => { return {} }
+      default: () => {
+        return {}
+      }
     }
   },
   mounted () {
@@ -102,7 +112,7 @@ export default {
 </script>
 
 <style lang="less" scoped>
-* /deep/ .vxe-table .vxe-body--expanded-column.col--ellipsis>.vxe-body--expanded-cell {
+* /deep/ .vxe-table .vxe-body--expanded-column.col--ellipsis > .vxe-body--expanded-cell {
   overflow: auto;
 }
 </style>

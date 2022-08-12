@@ -20,7 +20,8 @@
       :key="d[sKey]"
       :oData="d"
       :value="d[sKey]"
-    >{{ typeof sTitle==='string' ? d[sTitle] : sTitle(d) }}</a-select-option>
+    >{{ typeof sTitle === 'string' ? d[sTitle] : sTitle(d) }}
+    </a-select-option>
   </a-select>
   <span v-else>{{ displayTitle }}</span>
 </template>
@@ -75,7 +76,8 @@ export default {
     },
     dropdownStyle: {
       type: Object,
-      default: () => {}
+      default: () => {
+      }
     }
   },
   data () {

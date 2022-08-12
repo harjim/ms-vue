@@ -1,0 +1,76 @@
+<template>
+  <a-auto-complete
+    backfill
+    allowClear
+    optionLabelProp="value"
+    :placeholder="placeholder"
+    @select="onSelect"
+    @search="debounceSearch"
+  >
+    <template slot="dataSource">
+      <a-select-option v-for="item in dataSource" :key="`${item.customerId}`" :value="`${item[prop]}`">
+        {{ item.companyName }}
+      </a-select-option>
+    </template>
+  </a-auto-complete>
+</template>
+
+<script>
+export default {
+  name: 'SelectCompany',
+  props: {
+    placeholder: {
+      type: String,
+      default: '请输入客户名称'
+    },
+    prop: {
+      type: String,
+      default: 'customerId'
+    }
+  },
+  data () {
+    this.debounceSearch = this.debounce(this.debounceSearch)
+    return {
+      dataSource: []
+    }
+  },
+  mounted () {
+  },
+  methods: {
+    onSelect (value) {
+      console.log(value, 'onSelect')
+      this.$emit('changeCompany', value)
+    },
+    debounceSearch (searchText) {
+      if (!searchText) return
+      this.getCustomerList(searchText)
+    },
+    debounce (fn, delay = 1000) {
+      let timer = null
+      return function () {
+        if (timer) clearTimeout(timer)
+        timer = setTimeout(() => {
+          fn.apply(this, arguments)
+        }, delay)
+      }
+    },
+    getCustomerList (companyName) {
+      this.$http.get('/serviceApply/getCustomerList', { params: { companyName } }).then(({
+        success,
+        errorMessage,
+        data
+      }) => {
+        if (success) {
+          this.dataSource = data
+        } else {
+          this.$message.error(errorMessage)
+        }
+      })
+    }
+  }
+}
+</script>
+
+<style scoped>
+
+</style>

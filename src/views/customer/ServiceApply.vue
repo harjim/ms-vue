@@ -220,7 +220,7 @@ export default {
     },
     openDetail (row) {
       this.$store.commit('service/SET_DETAIL', row)
-      this.$refs.ServiceOrderDetail.open(row)
+      this.$refs.ServiceOrderDetail.open()
     }
   }
 }

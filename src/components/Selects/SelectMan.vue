@@ -52,23 +52,14 @@ export default {
       label: item.userName
     }))
   },
+  // 组件销毁前更新其领导人
   beforeDestroy () {
-    if (this.keyField === 'otherList') return
-    const params = {
+    if (this.keyField === 'other') return
+    this.$store.dispatch({
+      type: 'service/changeBoss',
+      key: this.keyField,
       userIds: this.value.map(i => i.key),
-      userName: '',
       type: this.type
-    }
-    this.$http.get('/serviceApply/getMemberList', { params }).then(({
-      success,
-      data,
-      errorMessage
-    }) => {
-      if (success) {
-        this.$emit('changeorder', data)
-      } else {
-        this.$message.error(errorMessage)
-      }
     })
   },
   methods: {
@@ -96,7 +87,7 @@ export default {
         errorMessage
       }) => {
         if (success) {
-          this.dataSource = data[this.keyField]
+          this.dataSource = data[`${this.keyField}List`]
         } else {
           this.$message.error(errorMessage)
         }
@@ -109,6 +100,14 @@ export default {
         value,
         data: [],
         fetching: false
+      })
+      this.$store.commit({
+        type: 'service/CHANGE_USER',
+        key: `${this.keyField}List`,
+        data: value.map(item => ({
+          userId: item.key,
+          userName: item.label
+        }))
       })
     }
   }

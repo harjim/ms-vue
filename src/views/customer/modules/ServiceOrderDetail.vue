@@ -12,12 +12,17 @@
         <template #up>
           <div style="height: 100%">
             <h2>服务单号:{{ detail.serviceNo }}</h2>
-            <ServiceOrderDetailCheck :detail="detail" :is-check="isCheck"/>
+            <ServiceOrderDetailCheck :is-check="isCheck" />
           </div>
         </template>
         <template #down>
-          <template v-if="$auth('customer:serviceApply:review') || $auth('customer:serviceApply:audit')">
-            <ServiceOrderDetailAudit :instance-id="detail.instanceId"/>
+          <template
+            v-if="
+              $auth('customer:serviceApply:review') ||
+              $auth('customer:serviceApply:audit')
+            "
+          >
+            <ServiceOrderDetailAudit :instance-id="detail.instanceId" />
           </template>
         </template>
       </tab-layout>
@@ -38,11 +43,17 @@
       <a-button
         :style="{ marginRight: '8px' }"
         :disabled="!isEditStatus(detail.status)"
-        v-if="isCheck"
-        @click="isCheck = false">
+        v-if="!editing"
+        @click="onEdit"
+      >
         编辑
       </a-button>
-      <a-button :style="{ marginRight: '8px' }" :disabled="!isEditStatus(detail.status)" v-else @click="isCheck = true">
+      <a-button
+        v-else
+        :style="{ marginRight: '8px' }"
+        :disabled="!isEditStatus(detail.status)"
+        @click="temporarilySave"
+      >
         暂存
       </a-button>
       <a-button type="primary" :disabled="!isEditStatus(detail.status)">
@@ -57,36 +68,42 @@ import ServiceOrderDetailCheck from '@/views/customer/modules/ServiceOrderDetail
 import ServiceOrderDetailAudit from '@/views/customer/modules/ServiceOrderDetailAudit'
 import TabLayout from '@/views/customer/modules/AuditProgress/modules/TabLayout'
 import { isEditStatus } from '@/utils/processDoc/auditStatus'
+import { mapState } from 'vuex'
 
 export default {
   name: 'ServiceOrderDetail',
   components: {
     TabLayout,
     ServiceOrderDetailAudit,
-    ServiceOrderDetailCheck
+    ServiceOrderDetailCheck,
   },
   data () {
     return {
       visible: false,
-      detail: {},
-      isCheck: true
     }
   },
   computed: {
-    currentOrder: state => state.service.currentOrder
+    ...mapState({
+      editing: state => state.service.editing,
+    }),
   },
   methods: {
     isEditStatus,
-    open (data) {
-      this.detail = data
+    open () {
       this.visible = true
     },
     close () {
-      this.detail = {}
-      this.isCheck = true
       this.visible = false
+    },
+    // 进入编辑状态
+    onEdit () {
+      this.$store.commit('service/TEMPORARILY', true)
+    },
+    // 暂存
+    temporarilySave () {
+      this.$store.commit('service/TEMPORARILY', false)
     }
-  }
+  },
 }
 </script>
 

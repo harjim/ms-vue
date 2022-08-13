@@ -144,7 +144,7 @@
           <template v-else>
             <a-popconfirm
               title="是否删除该记录?"
-              @confirm="delTableRow(row, index)"
+              @confirm="delTableRow(index)"
             >
               <a>删除</a>
             </a-popconfirm>
@@ -300,11 +300,21 @@ export default {
     changeCompany (v, r) {
       r.companyName = v
     },
-    validAllAndSave () {
+    async validAllAndSave () {
+      const errMap = await this.$refs.xTable.validate().catch(errMap => errMap)
+      if (!errMap) {
+        this.editCus = false
+        await this.$refs.xTable.clearActived()
+      }
     },
     cancelRowEvent () {
+      this.$refs.xTable.clearActived().then(() => {
+        this.customerList.shift()
+        this.editCus = false
+      })
     },
-    delTableRow () {
+    delTableRow (index) {
+      this.customerList.splice(index, 1)
     }
   }
 }

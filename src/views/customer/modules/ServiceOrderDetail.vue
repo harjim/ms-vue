@@ -1,7 +1,8 @@
 <template>
   <a-drawer
+    destroyOnClose
     :visible="visible"
-    title="服务单详情"
+    :title="editing ? '编辑服务单' : '服务单详情'"
     :width="960"
     :drawerStyle="{ height: '100%' }"
     :bodyStyle="{ overflowY: 'hidden' }"
@@ -11,22 +12,20 @@
       <tab-layout>
         <template #up>
           <div style="height: 100%">
-            <h2>服务单号:{{ detail.serviceNo }}</h2>
-            <ServiceOrderDetailCheck :is-check="isCheck" />
+            <h2>服务单号:{{ currentOrder.serviceNo }}</h2>
+            <ServiceOrderDetailCheck/>
           </div>
         </template>
         <template #down>
           <template
-            v-if="
-              $auth('customer:serviceApply:review') ||
-              $auth('customer:serviceApply:audit')
-            "
+            v-if="$auth('customer:serviceApply:review') || $auth('customer:serviceApply:audit')"
           >
-            <ServiceOrderDetailAudit :instance-id="detail.instanceId" />
+            <ServiceOrderDetailAudit :instance-id="currentOrder.instanceId"/>
           </template>
         </template>
       </tab-layout>
     </div>
+
     <div
       :style="{
         position: 'absolute',
@@ -42,7 +41,7 @@
     >
       <a-button
         :style="{ marginRight: '8px' }"
-        :disabled="!isEditStatus(detail.status)"
+        :disabled="!getIsEditStatus"
         v-if="!editing"
         @click="onEdit"
       >
@@ -51,14 +50,21 @@
       <a-button
         v-else
         :style="{ marginRight: '8px' }"
-        :disabled="!isEditStatus(detail.status)"
+        :disabled="tableEdit"
         @click="temporarilySave"
       >
         暂存
       </a-button>
-      <a-button type="primary" :disabled="!isEditStatus(detail.status)">
-        提交
-      </a-button>
+      <a-popconfirm
+        title="是否确认提交?"
+        @confirm="onSubmit"
+        placement="leftTop"
+        :disabled="!getIsEditStatus || tableEdit"
+      >
+        <a-button type="primary" :disabled="!getIsEditStatus || tableEdit">
+          提交
+        </a-button>
+      </a-popconfirm>
     </div>
   </a-drawer>
 </template>
@@ -68,24 +74,27 @@ import ServiceOrderDetailCheck from '@/views/customer/modules/ServiceOrderDetail
 import ServiceOrderDetailAudit from '@/views/customer/modules/ServiceOrderDetailAudit'
 import TabLayout from '@/views/customer/modules/AuditProgress/modules/TabLayout'
 import { isEditStatus } from '@/utils/processDoc/auditStatus'
-import { mapState } from 'vuex'
+import { mapGetters, mapState } from 'vuex'
 
 export default {
   name: 'ServiceOrderDetail',
   components: {
     TabLayout,
     ServiceOrderDetailAudit,
-    ServiceOrderDetailCheck,
+    ServiceOrderDetailCheck
   },
   data () {
     return {
-      visible: false,
+      visible: false
     }
   },
   computed: {
     ...mapState({
+      currentOrder: state => state.service.currentOrder,
       editing: state => state.service.editing,
+      tableEdit: state => state.service.tableEdit
     }),
+    ...mapGetters('service', ['getIsEditStatus'])
   },
   methods: {
     isEditStatus,
@@ -93,6 +102,10 @@ export default {
       this.visible = true
     },
     close () {
+      this.$store.dispatch({
+        type: 'service/closeDrawer',
+        edit: false
+      })
       this.visible = false
     },
     // 进入编辑状态
@@ -102,8 +115,26 @@ export default {
     // 暂存
     temporarilySave () {
       this.$store.commit('service/TEMPORARILY', false)
+      this.$nextTick(() => {
+        this.$http.post('/serviceApply/editServiceApply', this.currentOrder).then(({ success, data, errorMessage }) => {
+          if (success) {
+            console.log(data)
+          } else {
+            this.$message.error(errorMessage)
+          }
+        })
+      })
+    },
+    onSubmit () {
+      this.$http.post('/serviceApply/submit', this.currentOrder).then(({ success, errorMessage }) => {
+        if (success) {
+          this.close()
+        } else {
+          this.$message.error(errorMessage)
+        }
+      })
     }
-  },
+  }
 }
 </script>
 

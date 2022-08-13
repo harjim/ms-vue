@@ -38,7 +38,6 @@ export default {
   },
   methods: {
     onSelect (value) {
-      console.log(value, 'onSelect')
       this.$emit('changeCompany', value)
     },
     debounceSearch (searchText) {

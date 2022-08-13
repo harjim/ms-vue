@@ -64,6 +64,11 @@
         @checkbox-all="selectAllEvent"
         @checkbox-change="selectChangeEvent"
       >
+        <template v-slot:buttons>
+          <template v-if="$auth('customer:serviceApply:add')">
+            <a-button type="primary" @click="$refs.ServiceOrderAdd.open()">添加</a-button>
+          </template>
+        </template>
         <vxe-table-column type="checkbox" width="50" align="center" fixed="left"/>
         <vxe-table-column
           title="服务单号"
@@ -167,6 +172,7 @@
         />
       </ystable>
       <ServiceOrderDetail ref="ServiceOrderDetail"/>
+      <ServiceOrderAdd ref="ServiceOrderAdd"/>
     </template>
     <template v-else>
       <a-empty :description="false"/>
@@ -181,10 +187,12 @@ import { getStatusName, statusColor, statusMap } from '@/utils/processDoc/auditS
 import DeptSelect from '@/components/Selects/DeptSelect'
 import SearchSelect from '@/components/Selects/SearchSelect'
 import SelectCompany from '@/components/Selects/SelectCompany'
+import ServiceOrderAdd from '@/views/customer/modules/ServiceOrderAdd'
 
 export default {
   name: 'ServiceApply',
   components: {
+    ServiceOrderAdd,
     SelectCompany,
     SearchSelect,
     DeptSelect,

@@ -1,30 +1,36 @@
 import { axios } from '@/utils/request'
-import { getStatusName, statusColor } from '@/utils/processDoc/auditStatus'
+import { getStatusName, isEditStatus, statusColor } from '@/utils/processDoc/auditStatus'
 
 const service = {
   namespaced: true,
   state: {
-    cacheOrder: {},
     currentOrder: {},
-    editing: false
+    editing: false,
+    tableEdit: false
   },
 
   getters: {
-    getStatusColor(state) {
+    getStatusColor (state) {
       return statusColor[state.currentOrder.status]
     },
-    getStatusTitle(state) {
+    getStatusTitle (state) {
       return getStatusName(state.currentOrder.status)
+    },
+    // 可以:true ;不可:false
+    getIsEditStatus (state) {
+      return isEditStatus(state.currentOrder.status)
     }
   },
 
   mutations: {
     SET_DETAIL: (state, currentOrder) => {
       state.currentOrder = JSON.parse(JSON.stringify(currentOrder))
-      state.cacheOrder = JSON.parse(JSON.stringify(currentOrder))
     },
     TEMPORARILY: (state, flag) => {
       state.editing = flag
+    },
+    SET_TABLE_EDIT: (state, flag) => {
+      state.tableEdit = flag
     },
     CHANGE_USER: (state, { key, data }) => {
       state.currentOrder[key] = data
@@ -42,17 +48,26 @@ const service = {
     },
     CHANGE_REMARK: (state, v) => {
       state.currentOrder.remark = v
+    },
+    ADD_CUSTOMER_ITEM: (state, record) => {
+      state.currentOrder.customerList.unshift(record)
+    },
+    DELETE_CUSTOMER_ITEM: (state, index) => {
+      state.currentOrder.customerList.splice(index, 1)
+    },
+    CLOSE: (state, editing) => {
+      state.editing = editing
+      state.currentOrder = {}
+      state.tableEdit = false
     }
   },
 
   actions: {
-    changeBoss(ctx, { key, userIds, type }) {
-      // 如果正在编辑状态下退出，则说明不是通过点击暂存退出的编辑状态
-      if (ctx.state.editing) return
+    changeBoss (ctx, { key, userIds, types }) {
       const params = {
         userIds,
         userName: '',
-        type
+        type: types
       }
       axios.get('/serviceApply/getMemberList', { params }).then(({ success, data, errorMessage }) => {
         if (success) {
@@ -61,6 +76,16 @@ const service = {
           this.$message.error(errorMessage)
         }
       })
+    },
+    closeDrawer (ctx, { edit }) {
+      ctx.commit('CLOSE', edit)
+    },
+    addCustomerItem (ctx, { record }) {
+      ctx.commit('SET_TABLE_EDIT', true)
+      ctx.commit('ADD_CUSTOMER_ITEM', record)
+    },
+    delCustomerItem (ctx, { index }) {
+      ctx.commit('DELETE_CUSTOMER_ITEM', index)
     }
   }
 }

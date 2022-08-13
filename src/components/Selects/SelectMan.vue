@@ -8,6 +8,7 @@
     :not-found-content="undefined"
     @search="fetchUser"
     @change="handleChange"
+    @blur="$emit('blur', keyField, value, type)"
   >
     <template slot="notFoundContent">
       <a-spin v-if="fetching"/>
@@ -52,18 +53,8 @@ export default {
       label: item.userName
     }))
   },
-  // 组件销毁前更新其领导人
-  beforeDestroy () {
-    if (this.keyField === 'other') return
-    this.$store.dispatch({
-      type: 'service/changeBoss',
-      key: this.keyField,
-      userIds: this.value.map(i => i.key),
-      type: this.type
-    })
-  },
   methods: {
-    debounce (fn, delay = 1000) {
+    debounce (fn, delay = 800) {
       let timer = null
       return function () {
         if (timer) clearTimeout(timer)
@@ -101,14 +92,7 @@ export default {
         data: [],
         fetching: false
       })
-      this.$store.commit({
-        type: 'service/CHANGE_USER',
-        key: `${this.keyField}List`,
-        data: value.map(item => ({
-          userId: item.key,
-          userName: item.label
-        }))
-      })
+      this.$emit('change', this.keyField, value)
     }
   }
 }

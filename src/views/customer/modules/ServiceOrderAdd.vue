@@ -88,80 +88,89 @@
           </a-form-model-item>
         </a-col>
       </a-row>
-    </a-form-model>
+      <vxe-grid
+        ref="xTable"
+        resizable
+        stripe
+        keep-source
+        size="small"
+        :data="customerList"
+        :max-height="200"
+        :edit-config="{ trigger: 'manual', mode: 'row', autoClear: false }"
+        :edit-rules="validRules"
+      >
+        <vxe-table-column type="seq" width="60" fixed="left"/>
+        <vxe-table-column
+          field="companyName"
+          title="公司"
+          minWidth="200"
+          :edit-render="{ immediate: true }"
+        >
+          <template v-slot:edit="{ row }">
+            <select-company
+              style="width: 100%"
+              prop="companyName"
+              @changeCompany="(data) => changeCompany(data, row)"
+            />
+          </template>
+        </vxe-table-column>
+        <vxe-table-column
+          field="causes"
+          title="事由"
+          minWidth="200"
+          :edit-render="{ immediate: true }"
+        >
+          <template v-slot:edit="{ row }">
+            <a-textarea
+              style="width: 100%;"
+              v-model="row.causes"
+              :auto-size="{ minRows: 2, maxRows: 5 }"
+            />
+          </template>
+        </vxe-table-column>
+        <vxe-table-column title="操作" minWidth="60" align="center">
+          <template v-slot="{ row, index }">
+            <template v-if="$refs.xTable.isActiveByRow(row)">
+              <a style="margin-right: 10px;" @click="validAllAndSave">保存</a>
+              <a-popconfirm
+                title="是否取消添加?"
+                @confirm="cancelRowEvent"
+              >
+                <a>取消</a>
+              </a-popconfirm>
+            </template>
+            <template v-else>
+              <a-popconfirm
+                title="是否删除该记录?"
+                @confirm="delTableRow(index)"
+              >
+                <a>删除</a>
+              </a-popconfirm>
+            </template>
+          </template>
+        </vxe-table-column>
+      </vxe-grid>
+      <a-button
+        :disabled="editCus"
+        type="dashed"
+        block
+        icon="plus"
+        style="margin-top: 12px;"
+        @click="insertEvent"
+      >
+        添加
+      </a-button>
 
-    <vxe-grid
-      ref="xTable"
-      resizable
-      stripe
-      keep-source
-      size="small"
-      :data="customerList"
-      :max-height="200"
-      :edit-config="{ trigger: 'manual', mode: 'row', autoClear: false }"
-      :edit-rules="validRules"
-    >
-      <vxe-table-column type="seq" width="60" fixed="left"/>
-      <vxe-table-column
-        field="companyName"
-        title="公司"
-        minWidth="200"
-        :edit-render="{ immediate: true }"
-      >
-        <template v-slot:edit="{ row }">
-          <select-company
-            style="width: 100%"
-            prop="companyName"
-            @changeCompany="(data) => changeCompany(data, row)"
-          />
-        </template>
-      </vxe-table-column>
-      <vxe-table-column
-        field="causes"
-        title="事由"
-        minWidth="200"
-        :edit-render="{ immediate: true }"
-      >
-        <template v-slot:edit="{ row }">
-          <a-textarea
-            style="width: 100%;"
-            v-model="row.causes"
-            :auto-size="{ minRows: 2, maxRows: 5 }"
-          />
-        </template>
-      </vxe-table-column>
-      <vxe-table-column title="操作" minWidth="60" align="center">
-        <template v-slot="{ row, index }">
-          <template v-if="$refs.xTable.isActiveByRow(row)">
-            <a style="margin-right: 10px;" @click="validAllAndSave">保存</a>
-            <a-popconfirm
-              title="是否取消添加?"
-              @confirm="cancelRowEvent"
-            >
-              <a>取消</a>
-            </a-popconfirm>
-          </template>
-          <template v-else>
-            <a-popconfirm
-              title="是否删除该记录?"
-              @confirm="delTableRow(index)"
-            >
-              <a>删除</a>
-            </a-popconfirm>
-          </template>
-        </template>
-      </vxe-table-column>
-    </vxe-grid>
-    <a-button
-      :disabled="editCus"
-      type="dashed"
-      block
-      icon="plus"
-      style="margin-top: 12px;"
-      @click="insertEvent"
-    >
-      添加
-    </a-button>
+      <a-form-model-item label="备注">
+        <a-textarea
+          style="width: 910px;"
+          placeholder="请输入"
+          v-model='form.remark'
+          :defaultValue="currentOrder.remark"
+          :auto-size="{ minRows: 2, maxRows: 5 }"
+        />
+      </a-form-model-item>
+    </a-form-model>
 
     <div
       :style="{

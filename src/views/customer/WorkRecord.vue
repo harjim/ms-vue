@@ -1,0 +1,236 @@
+<template>
+  <a-card :bordered="false">
+    <template v-if="$auth('customer:workRecord:search')">
+      <a-form-model layout="inline" ref="form" :model="form">
+        <a-form-model-item label="客户名称">
+          <select-company style="width: 190px;" prop="companyName" @changeCompany="v => form.companyName = v"/>
+        </a-form-model-item>
+        <a-form-model-item label="创建人">
+          <search-select
+            url="/user/userForSelect"
+            searchField="realName"
+            sTitle="realName"
+            placeholder="请输入创建人"
+            style="width:190px;"
+            v-model="temp.ownerName"
+            @change="v => form.ownerName = v.realName"
+          />
+        </a-form-model-item>
+        <a-form-model-item label="流程状态">
+          <a-select v-model="form.status" placeholder="请输入流程状态" style="width: 190px;">
+            <a-select-option v-for="(v, k) in statusMap" :key="k" :value="k">{{ v }}</a-select-option>
+          </a-select>
+        </a-form-model-item>
+        <a-form-model-item label="当前处理人">
+          <search-select
+            url="/user/userForSelect"
+            searchField="realName"
+            sTitle="realName"
+            placeholder="请输入当前处理人"
+            style="width:190px;"
+            v-model="temp.auditUsers"
+            @change="v => form.auditUsers = v.realName"
+          />
+        </a-form-model-item>
+        <a-form-model-item>
+          <a-button type="primary" @click="onSearch">查询</a-button>
+        </a-form-model-item>
+      </a-form-model>
+
+      <ystable
+        id="workRecordTable"
+        ref="xTable"
+        :params="form"
+        :seq-config="{ startIndex: 1 }"
+        query-url="/workRecord/getList"
+        :toolbar="{
+          refresh: true,
+          zoom: true,
+          custom: true
+        }"
+        show-overflow="tooltip"
+      >
+        <template v-slot:buttons>
+          <template v-if="$auth('customer:workRecord:add')">
+            <a-button type="primary" @click="$refs.WorkRecordAdd.open()">添加</a-button>
+          </template>
+        </template>
+        <vxe-table-column
+          title="客户名称"
+          field="companyName"
+          fixed="left"
+          width="200"
+        >
+          <template v-slot="{ row }">
+            <a v-if="$auth('customer:workRecord:check')" @click="openDetail(row)">{{ row.companyName }}</a>
+            <div v-else>{{ row.companyName }}</div>
+          </template>
+        </vxe-table-column>
+        <vxe-table-column
+          title="关联单号"
+          field="serviceNo"
+          align="center"
+          fixed="left"
+          width="200"
+        />
+        <vxe-table-column
+          title="业务员"
+          field="salesman"
+          width="100"
+        />
+        <vxe-table-column title="所属部门" width="100">
+          <template v-slot="{ row }">
+            <div>{{ deepTreeTitle(row.deptId) }}</div>
+          </template>
+        </vxe-table-column>
+        <vxe-table-column title="事项" width="60" align="right">
+          <template v-slot="{ row }">
+            <a-popover
+              :autoAdjustOverflow="false"
+              placement="bottom"
+              destroyTooltipOnHide
+            >
+              <div>{{ row.matter.length }}</div>
+              <template slot="content">
+                <vxe-grid
+                  auto-resize
+                  :data="row.matter"
+                  show-overflow="title"
+                  max-height="400"
+                  show-footer
+                  :footerMethod="footerMethod"
+                >
+                  <vxe-table-column type="seq" title="序号" width="60"/>
+                  <vxe-table-column field="causes" title="事项" width="100"></vxe-table-column>
+                  <vxe-table-column field="date" title="起止时间" align="center" width="100"></vxe-table-column>
+                  <vxe-table-column field="cost" title="费用" width="100"></vxe-table-column>
+                  <vxe-table-column field="remark" title="备注" minWidth="100"></vxe-table-column>
+                </vxe-grid>
+              </template>
+            </a-popover>
+          </template>
+        </vxe-table-column>
+        <vxe-table-column title="总费用" width="100" align="right">
+          <template v-slot="{ row }">
+            <div>{{ countArrCost(row.matter) }}</div>
+          </template>
+        </vxe-table-column>
+        <vxe-table-column
+          title="创建人"
+          field="ownerName"
+          width="100"
+        />
+        <vxe-table-column
+          title="流程状态"
+          field="status"
+          width="120"
+        >
+          <template v-slot="{ row }">
+            <a-badge :color="statusColor[row.status]" :text="getStatusName(row.status)"/>
+          </template>
+        </vxe-table-column>
+        <vxe-table-column
+          title="当前处理人"
+          field="auditUsers"
+          width="100"
+        />
+        <vxe-table-column
+          title="创建时间"
+          field="createTime"
+          width="160"
+          align="center"
+        />
+        <vxe-table-column
+          title="最后更新时间"
+          field="lastUpdateTime"
+          width="160"
+          align="center"
+        />
+      </ystable>
+
+      <WorkRecordCheck ref="WorkRecordCheck" :deptArr="deptArr"/>
+      <WorkRecordAdd ref="WorkRecordAdd"/>
+    </template>
+    <template v-else>
+      <a-empty :description="false"/>
+    </template>
+  </a-card>
+</template>
+
+<script>
+import ystable from '@/components/Table/ystable'
+import SelectCompany from '@/components/Selects/SelectCompany'
+import { getStatusName, statusColor, statusMap } from '@/utils/processDoc/auditStatus'
+import SearchSelect from '@/components/Selects/SearchSelect'
+import { deepTree } from '@/utils/util'
+import WorkRecordAdd from '@/views/customer/modules/WorkRecordAdd'
+import WorkRecordCheck from '@/views/customer/modules/WorkRecordCheck'
+
+export default {
+  name: 'WorkRecord',
+  components: { WorkRecordCheck, WorkRecordAdd, SearchSelect, SelectCompany, ystable },
+  props: {},
+  data () {
+    return {
+      statusMap,
+      statusColor,
+      temp: {},
+      deptArr: [],
+      form: {}
+    }
+  },
+  computed: {},
+  watch: {},
+  methods: {
+    getStatusName,
+    onSearch () {
+      this.$refs.xTable.refresh(true)
+    },
+    deepTreeTitle (value) {
+      const temp = deepTree(this.deptArr, value)
+      return temp.title || '-'
+    },
+    countArrCost (arr) {
+      return arr.reduce((total, row) => {
+        return total + row.cost
+      }, 0).toFixed(2)
+    },
+    footerMethod ({ columns, data }) {
+      return [columns.map((col, _colI) => {
+        if (_colI === 0) {
+          return '合计'
+        }
+        if (_colI === 3) {
+          return this.countArrCost(data)
+        }
+        return ''
+      })]
+    },
+    openDetail (row) {
+      this.$store.commit('workRecord/SET_ORDER', row)
+      this.$refs.WorkRecordCheck.open()
+    }
+  },
+  beforeCreate () {
+  },
+  created () {
+  },
+  beforeMount () {
+    this.$http.get('/dept/tree').then(({ success, data }) => {
+      if (success) {
+        this.deptArr = data
+      }
+    })
+  },
+  mounted () {
+  },
+  beforeUpdate () {
+  },
+  updated () {
+  },
+  beforeDestroy () {
+  },
+  destroyed () {
+  }
+}
+</script>

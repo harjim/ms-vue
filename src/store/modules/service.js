@@ -24,7 +24,10 @@ const service = {
 
   mutations: {
     SET_DETAIL: (state, currentOrder) => {
-      state.currentOrder = JSON.parse(JSON.stringify(currentOrder))
+      const temp = JSON.parse(JSON.stringify(currentOrder))
+      delete temp.createTime
+      delete temp.lastUpdateTime
+      state.currentOrder = temp
     },
     TEMPORARILY: (state, flag) => {
       state.editing = flag

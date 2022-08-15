@@ -4,27 +4,25 @@
     :visible="visible"
     :title="editing ? '编辑服务单' : '服务单详情'"
     :width="960"
-    :drawerStyle="{ height: '100%' }"
+    :drawerStyle="{ height: '100vh' }"
     :bodyStyle="{ overflowY: 'hidden' }"
     @close="close"
   >
-    <div id="box">
-      <tab-layout>
-        <template #up>
-          <div style="height: 100%">
-            <h2>服务单号:{{ currentOrder.serviceNo }}</h2>
-            <ServiceOrderDetailCheck/>
-          </div>
+    <tab-layout>
+      <template #up>
+        <div style="height: 100%">
+          <h2>服务单号:{{ currentOrder.serviceNo }}</h2>
+          <ServiceOrderDetailCheck/>
+        </div>
+      </template>
+      <template #down>
+        <template
+          v-if="$auth('customer:serviceApply:review') || $auth('customer:serviceApply:audit')"
+        >
+          <ServiceOrderDetailAudit :instance-id="currentOrder.instanceId"/>
         </template>
-        <template #down>
-          <template
-            v-if="$auth('customer:serviceApply:review') || $auth('customer:serviceApply:audit')"
-          >
-            <ServiceOrderDetailAudit :instance-id="currentOrder.instanceId"/>
-          </template>
-        </template>
-      </tab-layout>
-    </div>
+      </template>
+    </tab-layout>
 
     <div
       :style="{
@@ -139,40 +137,42 @@ export default {
 </script>
 
 <style lang="less" scoped>
-#box {
-  & /deep/ .ant-spin-container {
-    height: 100%;
+& /deep/ .ant-spin-container {
+  height: calc(100vh - 64px);
+}
+
+& /deep/ .center_wrap {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 110px);
+
+  .up {
+    height: 70%;
+    width: 100%;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
   }
 
-  & /deep/ .center_wrap {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
+  & > .midden {
+    width: 100%;
+    height: 6px;
+    background-color: #F0F2F5;
+    border-radius: 3px;
 
-    .up {
-      height: 70%;
-      width: 100%;
+    &:hover {
+      cursor: n-resize;
+      background-color: #d6d6d6;
     }
+  }
 
-    & > .midden {
-      width: 100%;
-      height: 6px;
-      background-color: #F0F2F5;
-      border-radius: 3px;
+  .down {
+    overflow: auto;
+    flex: 1;
 
-      &:hover {
-        cursor: n-resize;
-        background-color: #d6d6d6;
-      }
-    }
-
-    .down {
+    & /deep/ .ant-tabs-tabpane {
       overflow: auto;
-      flex: 1;
-
-      & /deep/ .ant-tabs-tabpane {
-        overflow: auto;
-      }
     }
   }
 }

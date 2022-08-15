@@ -1,6 +1,5 @@
 <template>
   <a-drawer :visible="visible" destroyOnClose title="添加服务申请" :width="960" @close="close">
-
     <a-form-model ref="form" :model="form" layout="inline">
       <a-row>
         <a-col :span="12">
@@ -88,85 +87,87 @@
           </a-form-model-item>
         </a-col>
       </a-row>
-      <vxe-grid
-        ref="xTable"
-        resizable
-        stripe
-        keep-source
-        size="small"
-        :data="customerList"
-        :max-height="200"
-        :edit-config="{ trigger: 'manual', mode: 'row', autoClear: false }"
-        :edit-rules="validRules"
-      >
-        <vxe-table-column type="seq" width="60" fixed="left"/>
-        <vxe-table-column
-          field="companyName"
-          title="公司"
-          minWidth="200"
-          :edit-render="{ immediate: true }"
+      <div style="margin-top: 16px;margin-bottom: 16px;">
+        <vxe-grid
+          ref="xTable"
+          resizable
+          stripe
+          keep-source
+          size="small"
+          :data="customerList"
+          :max-height="200"
+          show-overflow="title"
+          :edit-config="{ trigger: 'manual', mode: 'row', autoClear: false }"
+          :edit-rules="validRules"
         >
-          <template v-slot:edit="{ row }">
-            <select-company
-              style="width: 100%"
-              prop="companyName"
-              @changeCompany="(data) => changeCompany(data, row)"
-            />
-          </template>
-        </vxe-table-column>
-        <vxe-table-column
-          field="causes"
-          title="事由"
-          minWidth="200"
-          :edit-render="{ immediate: true }"
+          <vxe-table-column type="seq" width="60" fixed="left" title="序号"/>
+          <vxe-table-column
+            field="companyName"
+            title="公司"
+            minWidth="200"
+            :edit-render="{ immediate: true }"
+          >
+            <template v-slot:edit="{ row }">
+              <select-company
+                style="width: 100%"
+                prop="companyName"
+                @changeCompany="(data) => row.companyName = data"
+              />
+            </template>
+          </vxe-table-column>
+          <vxe-table-column
+            field="causes"
+            title="事由"
+            minWidth="200"
+            :edit-render="{ immediate: true }"
+          >
+            <template v-slot:edit="{ row }">
+              <a-textarea
+                style="width: 100%;"
+                v-model="row.causes"
+                :auto-size="{ minRows: 2, maxRows: 5 }"
+              />
+            </template>
+          </vxe-table-column>
+          <vxe-table-column title="操作" minWidth="60" align="center">
+            <template v-slot="{ row, index }">
+              <template v-if="$refs.xTable.isActiveByRow(row)">
+                <a style="margin-right: 10px;" @click="validAllAndSave">保存</a>
+                <a-popconfirm
+                  title="是否取消添加?"
+                  @confirm="cancelRowEvent"
+                >
+                  <a>取消</a>
+                </a-popconfirm>
+              </template>
+              <template v-else>
+                <a-popconfirm
+                  title="是否删除该记录?"
+                  @confirm="delTableRow(index)"
+                >
+                  <a>删除</a>
+                </a-popconfirm>
+              </template>
+            </template>
+          </vxe-table-column>
+        </vxe-grid>
+        <a-button
+          :disabled="editCus"
+          type="dashed"
+          block
+          icon="plus"
+          style="margin-top: 12px;"
+          @click="insertEvent"
         >
-          <template v-slot:edit="{ row }">
-            <a-textarea
-              style="width: 100%;"
-              v-model="row.causes"
-              :auto-size="{ minRows: 2, maxRows: 5 }"
-            />
-          </template>
-        </vxe-table-column>
-        <vxe-table-column title="操作" minWidth="60" align="center">
-          <template v-slot="{ row, index }">
-            <template v-if="$refs.xTable.isActiveByRow(row)">
-              <a style="margin-right: 10px;" @click="validAllAndSave">保存</a>
-              <a-popconfirm
-                title="是否取消添加?"
-                @confirm="cancelRowEvent"
-              >
-                <a>取消</a>
-              </a-popconfirm>
-            </template>
-            <template v-else>
-              <a-popconfirm
-                title="是否删除该记录?"
-                @confirm="delTableRow(index)"
-              >
-                <a>删除</a>
-              </a-popconfirm>
-            </template>
-          </template>
-        </vxe-table-column>
-      </vxe-grid>
-      <a-button
-        :disabled="editCus"
-        type="dashed"
-        block
-        icon="plus"
-        style="margin-top: 12px;"
-        @click="insertEvent"
-      >
-        添加
-      </a-button>
+          添加
+        </a-button>
+      </div>
 
       <a-form-model-item label="备注">
         <a-textarea
           style="width: 910px;"
           placeholder="请输入"
-          v-model='form.remark'
-          :defaultValue="currentOrder.remark"
+          v-model="form.remark"
           :auto-size="{ minRows: 2, maxRows: 5 }"
         />
       </a-form-model-item>
@@ -209,6 +210,7 @@ import { mapGetters, mapState } from 'vuex'
 import SelectMan from '@/components/Selects/SelectMan'
 import moment from 'moment/moment'
 import SelectCompany from '@/components/Selects/SelectCompany'
+import { deepTree } from '@/utils/util'
 
 export default {
   name: 'ServiceOrderAdd',
@@ -227,8 +229,8 @@ export default {
       form: {},
       customerList: [],
       validRules: {
-        companyName: [{ required: true, message: '公司必须选择' }],
-        causes: [{ required: true, message: '事由必须填写' }]
+        companyName: [{ required: true, message: '公司必须选择', trigger: 'blur' }],
+        causes: [{ required: true, message: '事由必须填写', trigger: 'blur' }]
       }
     }
   },
@@ -248,26 +250,21 @@ export default {
     close () {
       this.form = {}
       this.boss = {}
+      this.editCus = false
       this.visible = false
     },
     getDeptTitle () {
       if (this.userInfo.deptIds.length > 0) {
         this.$http.get('/dept/tree').then(({ success, data }) => {
           if (success) {
-            this.deptTitle = this.deepTree(data, this.userInfo.deptIds[0])
+            this.deptTitle = this.deepTreeTitle(data, this.userInfo.deptIds[0]).title
           }
         })
       }
     },
-    deepTree (data, value) {
-      for (let i = 0; i < data.length; i++) {
-        const item = data[i]
-        if (+item.value === value) return item.title
-        if (item.children && item.children.length) {
-          const title = this.deepTree(item.children, value)
-          if (title) return title
-        }
-      }
+    deepTreeTitle (data, value) {
+      const temp = deepTree(data, value)
+      return temp.title || '-'
     },
     changeStateUser (k, v) {
       this.form[`${k}List`] = v.map(item => ({
@@ -305,9 +302,6 @@ export default {
       }
       this.customerList.unshift(record)
       await this.$refs.xTable.setActiveRow(record)
-    },
-    changeCompany (v, r) {
-      r.companyName = v
     },
     async validAllAndSave () {
       const errMap = await this.$refs.xTable.validate().catch(errMap => errMap)

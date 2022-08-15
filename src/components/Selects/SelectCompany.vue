@@ -37,8 +37,8 @@ export default {
   mounted () {
   },
   methods: {
-    onSelect (value) {
-      this.$emit('changeCompany', value)
+    onSelect (value, option) {
+      this.$emit('changeCompany', value, option)
     },
     debounceSearch (searchText) {
       if (!searchText) return

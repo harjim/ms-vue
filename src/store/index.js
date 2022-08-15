@@ -6,6 +6,7 @@ import user from './modules/user'
 import permission from './modules/permission'
 import enums from './modules/enums'
 import service from './modules/service'
+import workRecord from './modules/workRecord'
 import getters from './getters'
 
 Vue.use(Vuex)
@@ -16,7 +17,8 @@ export default new Vuex.Store({
     user,
     permission,
     enums,
-    service
+    service,
+    workRecord
   },
   state: {
     totalMax: 9999999999,

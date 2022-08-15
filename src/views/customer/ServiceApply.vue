@@ -52,7 +52,7 @@
       </a-form-model>
 
       <ystable
-        ref="xtable"
+        ref="xTable"
         query-url="/serviceApply/getList"
         :params="form"
         :seq-config="{ startIndex: 1 }"
@@ -63,6 +63,7 @@
         }"
         @checkbox-all="selectAllEvent"
         @checkbox-change="selectChangeEvent"
+        show-overflow="tooltip"
       >
         <template v-slot:buttons>
           <template v-if="$auth('customer:serviceApply:add')">
@@ -76,13 +77,12 @@
           align="center"
           fixed="left"
           width="200"
-          show-overflow="tooltip"
         >
           <template v-slot="{ row }">
             <a v-if="$auth('customer:serviceApply:check')" @click="openDetail(row)">{{
               row.serviceNo
             }}</a>
-            <p v-else>{{ row.serviceNo }}</p>
+            <div v-else>{{ row.serviceNo }}</div>
           </template>
         </vxe-table-column>
         <vxe-table-column
@@ -90,20 +90,17 @@
           field="customers"
           fixed="left"
           width="200"
-          show-overflow="tooltip"
         ></vxe-table-column>
         <vxe-table-column
           title="预计起止日期"
           field="date"
           align="center"
           width="200"
-          show-overflow="tooltip"
         />
         <vxe-table-column
           title="技术人员"
           field="techList"
           width="200"
-          show-overflow="tooltip"
         >
           <template v-slot="{ row }">
             <div class="txt-hide">{{ row.techList.map(i => i.userName).join(', ') }}</div>
@@ -113,7 +110,6 @@
           title="财务人员"
           field="finaList"
           width="200"
-          show-overflow="tooltip"
         >
           <template v-slot="{ row }">
             <div class="txt-hide">{{ row.finaList.map(i => i.userName).join(', ') }}</div>
@@ -123,7 +119,6 @@
           title="财务人员"
           field="otherList"
           width="200"
-          show-overflow="tooltip"
         >
           <template v-slot="{ row }">
             <div class="txt-hide">{{ row.otherList.map(i => i.userName).join(', ') }}</div>
@@ -133,19 +128,16 @@
           title="申请人"
           field="ownerName"
           width="200"
-          show-overflow="tooltip"
         />
         <vxe-table-column
           title="所属部门"
           field="deptName"
           width="200"
-          show-overflow="tooltip"
         />
         <vxe-table-column
           title="流程状态"
           field="status"
           width="200"
-          show-overflow="tooltip"
         >
           <template v-slot="{ row }">
             <a-badge :color="statusColor[row.status]" :text="getStatusName(row.status)"/>
@@ -155,20 +147,17 @@
           title="当前处理人"
           field="auditUsers"
           width="200"
-          show-overflow="tooltip"
         />
         <vxe-table-column
           title="创建时间"
           field="createTime"
           align="center"
           width="200"
-          show-overflow="tooltip"
         />
         <vxe-table-column
           title="最后修改时间"
           field="lastUpdateTime"
           width="200"
-          show-overflow="tooltip"
         />
       </ystable>
       <ServiceOrderDetail ref="ServiceOrderDetail"/>
@@ -212,7 +201,7 @@ export default {
   methods: {
     getStatusName,
     onSearch () {
-      this.$refs.xtable.refresh(true)
+      this.$refs.xTable.refresh(true)
     },
     selectChangeEvent ({ checked, records }) {
       this.selectedRowKeys = records.map(item => {

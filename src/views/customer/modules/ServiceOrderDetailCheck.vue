@@ -90,10 +90,11 @@
       size="small"
       :data="currentOrder.customerList"
       :max-height="200"
+      show-overflow="title"
       :edit-config="{ trigger: 'manual', mode: 'row', autoClear: false }"
       :edit-rules="validRules"
     >
-      <vxe-table-column type="seq" width="60" fixed="left"></vxe-table-column>
+      <vxe-table-column type="seq" width="60" fixed="left" title="序号"/>
       <vxe-table-column
         field="companyName"
         title="公司"
@@ -192,8 +193,8 @@ export default {
     return {
       form: {},
       validRules: {
-        companyName: [{ required: true, message: '公司必须选择' }],
-        causes: [{ required: true, message: '事由必须填写' }]
+        companyName: [{ required: true, message: '公司必须选择', trigger: 'blur' }],
+        causes: [{ required: true, message: '事由必须填写', trigger: 'blur' }]
       }
     }
   },

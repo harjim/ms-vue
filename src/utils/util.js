@@ -1,4 +1,5 @@
 import store from '../store'
+
 export function timeFix () {
   const time = new Date()
   const hour = time.getHours()
@@ -19,7 +20,8 @@ export function handleScrollHeader (callback) {
   let timer = 0
 
   let beforeScrollTop = window.pageYOffset
-  callback = callback || function () {}
+  callback = callback || function () {
+  }
   window.addEventListener(
     'scroll',
     event => {
@@ -98,12 +100,13 @@ export function replaceChar (char, targetChar = '', sourceString, location = 'fi
     return sourceString
   }
 }
+
 export function deepClone (target) {
   /**
-     * 遍历数据处理函数
-     * @array 要处理的数据
-     * @callback 回调函数，接收两个参数 value 每一项的值 index 每一项的下标或者key。
-    */
+   * 遍历数据处理函数
+   * @array 要处理的数据
+   * @callback 回调函数，接收两个参数 value 每一项的值 index 每一项的下标或者key。
+   */
   function handleWhile (array, callback) {
     const length = array.length
     let index = -1
@@ -111,6 +114,7 @@ export function deepClone (target) {
       callback(array[index], index)
     }
   }
+
   function clone (target, map) {
     if (target !== null && typeof target === 'object') {
       const result = Object.prototype.toString.call(target) === '[object Array]' ? [] : {}
@@ -120,6 +124,7 @@ export function deepClone (target) {
       }
       map.set(target, result)
       const keys = Object.prototype.toString.call(target) === '[object Array]' ? undefined : Object.keys(target)
+
       // eslint-disable-next-line no-inner-declarations
       function callback (value, key) {
         if (keys) {
@@ -127,17 +132,20 @@ export function deepClone (target) {
         }
         result[key] = clone(target[key], map)
       }
+
       handleWhile(keys || target, callback)
       return result
     } else {
       return target
     }
   }
+
   let map = new WeakMap()
   const result = clone(target, map)
   map = null
   return result
 }
+
 /**
  * @description: 防抖
  * @param {*} fun
@@ -154,6 +162,7 @@ export function debounce (fun, delay) {
     }, delay)
   }
 }
+
 /**
  * @description: 节流
  * @param {*} fun
@@ -178,6 +187,7 @@ export function throttle (fun, delay) {
     }
   }
 }
+
 export function getAuth (prefix, ary) {
   if (!ary.length) return
   const returnObject = {}
@@ -187,4 +197,15 @@ export function getAuth (prefix, ary) {
     returnObject[key] = authValue
   })
   return returnObject
+}
+
+export const deepTree = (data, value) => {
+  for (let i = 0; i < data.length; i++) {
+    const item = data[i]
+    if (+item.value === value) return item
+    if (item.children && item.children.length) {
+      const temp = deepTree(item.children, value)
+      if (temp) return temp
+    }
+  }
 }

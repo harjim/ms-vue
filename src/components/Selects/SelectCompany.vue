@@ -41,7 +41,10 @@ export default {
       this.$emit('changeCompany', value, option)
     },
     debounceSearch (searchText) {
-      if (!searchText) return
+      if (!searchText) {
+        this.$emit('changeCompany', '')
+        return
+      }
       this.getCustomerList(searchText)
     },
     debounce (fn, delay = 1000) {

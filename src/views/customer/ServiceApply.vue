@@ -13,7 +13,13 @@
             placeholder="请输入财务人员"
             style="width:190px;"
             v-model="search.finaName"
-            @change="v => form.finaName = v.realName"
+            @change="v => {
+              if (v) {
+                form.finaName = v.realName;
+              } else {
+                form.finaName = null;
+              }
+            }"
           />
         </a-form-model-item>
         <a-form-model-item label="技术人员">
@@ -24,7 +30,13 @@
             placeholder="请输入技术人员"
             style="width:190px;"
             v-model="search.techName"
-            @change="v => form.techName = v.realName"
+            @change="v => {
+              if (v) {
+                form.techName = v.realName;
+              } else {
+                form.techName = null;
+              }
+            }"
           />
         </a-form-model-item>
         <a-form-model-item label="申请人">
@@ -35,14 +47,20 @@
             placeholder="请输入申请人"
             style="width:190px;"
             v-model="search.ownerName"
-            @change="v => form.ownerName = v.realName"
+            @change="v => {
+              if (v) {
+                form.ownerName = v.realName;
+              } else {
+                form.ownerName = null;
+              }
+            }"
           />
         </a-form-model-item>
         <a-form-model-item label="所属部门">
-          <dept-select style="width: 190px;" v-model="form.deptName" placeholder="请输入所属部门"/>
+          <dept-select style="width: 190px;" v-model="form.deptId" placeholder="请输入所属部门"/>
         </a-form-model-item>
         <a-form-model-item label="流程状态">
-          <a-select v-model="form.status" placeholder="请输入流程状态" style="width: 190px;">
+          <a-select v-model="form.status" placeholder="请输入流程状态" style="width: 190px;" allowClear>
             <a-select-option v-for="(v, k) in statusMap" :key="k" :value="k">{{ v }}</a-select-option>
           </a-select>
         </a-form-model-item>
@@ -67,7 +85,15 @@
       >
         <template v-slot:buttons>
           <template v-if="$auth('customer:serviceApply:add')">
-            <a-button type="primary" @click="$refs.ServiceOrderAdd.open()">添加</a-button>
+            <a-button style="margin-right: 12px;" type="primary" @click="$refs.ServiceOrderAdd.open()">添加</a-button>
+          </template>
+          <template v-if="$auth('customer:serviceApply:del')">
+            <a-button
+              style="margin-right: 12px;"
+              type="primary"
+              :disabled="selectedRowKeys.length === 0"
+              @click="delServices">删除
+            </a-button>
           </template>
         </template>
         <vxe-table-column type="checkbox" width="50" align="center" fixed="left"/>
@@ -160,8 +186,8 @@
           width="200"
         />
       </ystable>
-      <ServiceOrderDetail ref="ServiceOrderDetail"/>
-      <ServiceOrderAdd ref="ServiceOrderAdd"/>
+      <ServiceOrderDetail ref="ServiceOrderDetail" @refresh="onSearch"/>
+      <ServiceOrderAdd ref="ServiceOrderAdd" @refresh="onSearch"/>
     </template>
     <template v-else>
       <a-empty :description="false"/>
@@ -218,6 +244,19 @@ export default {
     openDetail (row) {
       this.$store.commit('service/SET_DETAIL', row)
       this.$refs.ServiceOrderDetail.open()
+    },
+    delServices () {
+      this.$http.post('/serviceApply/delServiceApply', { ids: this.selectedRowKeys }).then(({
+        success,
+        errorMessage
+      }) => {
+        if (success) {
+          this.$message.success('删除成功')
+          this.onSearch()
+        } else {
+          this.$message.error(errorMessage)
+        }
+      })
     }
   }
 }

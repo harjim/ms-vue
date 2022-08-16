@@ -12,8 +12,8 @@
             sTitle="realName"
             placeholder="请输入创建人"
             style="width:190px;"
-            v-model="temp.ownerName"
-            @change="v => form.ownerName = v.realName"
+            v-model="temp.creatorName"
+            @change="v => form.creatorName = v.realName"
           />
         </a-form-model-item>
         <a-form-model-item label="流程状态">
@@ -42,7 +42,7 @@
         ref="xTable"
         :params="form"
         :seq-config="{ startIndex: 1 }"
-        query-url="/workRecord/getList"
+        query-url="/serviceRecord/getList"
         :toolbar="{
           refresh: true,
           zoom: true,
@@ -148,7 +148,7 @@
         />
       </ystable>
 
-      <WorkRecordCheck ref="WorkRecordCheck" :deptArr="deptArr"/>
+      <WorkRecordCheck ref="WorkRecordCheck" :deptArr="deptArr" @refresh="onSearch"/>
       <WorkRecordAdd ref="WorkRecordAdd"/>
     </template>
     <template v-else>

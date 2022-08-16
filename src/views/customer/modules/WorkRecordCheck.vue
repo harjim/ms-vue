@@ -16,13 +16,28 @@
               {{ order.companyName }}
             </a-descriptions-item>
             <a-descriptions-item label="关联单号">
-              {{ order.serviceNo }}
+              <template v-if="!editing">
+                {{ order.serviceNo }}
+              </template>
+              <template v-else>
+                <a-input placeholder="请输入关联单号"/>
+              </template>
             </a-descriptions-item>
             <a-descriptions-item label="业务员">
-              {{ order.salesman }}
+              <template v-if="!editing">
+                {{ order.salesman }}
+              </template>
+              <template v-else>
+                <a-input placeholder="请输入业务员"/>
+              </template>
             </a-descriptions-item>
             <a-descriptions-item label="所属部门">
-              {{ deepTreeTitle(order.deptId) }}
+              <template v-if="!editing">
+                {{ deepTreeTitle(order.deptId) }}
+              </template>
+              <template v-else>
+                <a-input placeholder="请输入所属部门"/>
+              </template>
             </a-descriptions-item>
             <a-descriptions-item label="创建人">
               {{ order.ownerName }}
@@ -82,30 +97,33 @@
                 @change="$refs.xTable.updateFooter()"/>
             </template>
           </vxe-table-column>
-          <vxe-table-column field="remark" title="备注" width="180" :edit-render="{ immediate: true }">
+          <vxe-table-column field="remark" title="备注" minWidth="180" :edit-render="{ immediate: true }">
             <template v-slot:edit="{ row }">
               <a-textarea
                 style="width: 100%;"
                 v-model="row.remark"
-                :auto-size="{ minRows: 2, maxRows: 5 }"
+                :auto-size="{ minRows: 1, maxRows: 5 }"
               />
             </template>
           </vxe-table-column>
-          <vxe-table-column title="操作" minWidth="100" align="center">
-            <template v-slot="{ row, index }">
+          <vxe-table-column title="操作" minWidth="100" align="center" v-if="editing">
+            <template v-slot="{ row, rowIndex }">
               <template v-if="$refs.xTable.isActiveByRow(row)">
-                <a style="margin-right: 10px;">保存</a>
+                <a style="margin-right: 10px;" @click="validAllAndSave">保存</a>
                 <a-popconfirm
                   :autoAdjustOverflow="false"
                   placement="left"
                   title="是否取消添加?"
+                  @confirm="cancelRowEvent"
                 >
                   <a>取消</a>
                 </a-popconfirm>
               </template>
               <template v-else>
                 <a-popconfirm
+                  placement="left"
                   title="是否删除该记录?"
+                  @confirm="delTableRow(row, rowIndex)"
                 >
                   <a>删除</a>
                 </a-popconfirm>
@@ -113,10 +131,21 @@
             </template>
           </vxe-table-column>
         </vxe-grid>
+        <a-button
+          v-if="editing"
+          type="dashed"
+          block
+          icon="plus"
+          style="margin-top: 12px;"
+          @click="insertEvent"
+          :disabled="tableEdit"
+        >
+          添加
+        </a-button>
       </template>
       <template #down>
         <template v-if="$auth('customer:serviceApply:review') || $auth('customer:serviceApply:audit')">
-          <ServiceOrderDetailAudit :instance-id="order.instanceId"/>
+          <ServiceOrderDetailAudit @refresh="$emit('refresh')" storeName="workRecord"/>
         </template>
       </template>
     </tab-layout>
@@ -137,22 +166,24 @@
       <a-button
         :style="{ marginRight: '8px' }"
         :disabled="!getIsEditStatus"
-        v-if="true"
+        v-if="!editing"
+        @click="onEdit"
       >
         编辑
       </a-button>
       <a-button
         v-else
         :style="{ marginRight: '8px' }"
+        :disabled="tableEdit"
       >
         暂存
       </a-button>
       <a-popconfirm
         title="是否确认提交?"
         placement="leftTop"
-        :disabled="!getIsEditStatus"
+        :disabled="!getIsEditStatus || tableEdit"
       >
-        <a-button type="primary" :disabled="!getIsEditStatus">
+        <a-button type="primary" :disabled="!getIsEditStatus || tableEdit">
           提交
         </a-button>
       </a-popconfirm>
@@ -177,7 +208,8 @@ export default {
   },
   data () {
     return {
-      visible: false
+      visible: false,
+      tableEdit: false
     }
   },
   computed: {
@@ -214,6 +246,32 @@ export default {
         }
         return ''
       })]
+    },
+    onEdit () {
+      this.$store.commit('workRecord/SET_EDITING', true)
+    },
+    async insertEvent () {
+      const record = {}
+      await this.$store.commit('workRecord/ADD_ITEM', record)
+      await this.$refs.xTable.setActiveRow(record)
+      this.tableEdit = true
+    },
+    delTableRow (row, index) {
+      this.$store.commit('workRecord/DEL_ITEM', index)
+      this.$refs.xTable.remove(row)
+    },
+    cancelRowEvent () {
+      this.$refs.xTable.clearActived().then(() => {
+        this.tableEdit = false
+        this.$store.commit('workRecord/DEL_ITEM')
+      })
+    },
+    async validAllAndSave () {
+      const errMap = await this.$refs.xTable.validate().catch(errMap => errMap)
+      if (!errMap) {
+        this.tableEdit = false
+        await this.$refs.xTable.clearActived()
+      }
     }
   },
   beforeCreate () {
@@ -269,6 +327,7 @@ export default {
   .down {
     overflow: auto;
     flex: 1;
+    min-height: 300px;
 
     & /deep/ .ant-tabs-tabpane {
       overflow: auto;

@@ -26,6 +26,23 @@ const workRecord = {
       delete temp.createTime
       delete temp.lastUpdateTime
       state.recordOrder = temp
+      state.editing = false
+    },
+    SET_EDITING: (state, editing) => {
+      state.editing = editing
+    },
+    ADD_ITEM: (state, record) => {
+      state.recordOrder.matter.unshift(record)
+    },
+    DEL_ITEM: (state, index) => {
+      if (index === undefined) {
+        state.recordOrder.matter.shift()
+      } else {
+        state.recordOrder.matter.splice(index, 1)
+      }
+    },
+    CHANGE_PERMISSION: (state, flag) => {
+      state.recordOrder.hasPermission = flag
     }
   },
 

@@ -19,7 +19,7 @@
         <template
           v-if="$auth('customer:serviceApply:review') || $auth('customer:serviceApply:audit')"
         >
-          <ServiceOrderDetailAudit :instance-id="currentOrder.instanceId"/>
+          <ServiceOrderDetailAudit @refresh="$emit('refresh')" storeName="service"/>
         </template>
       </template>
     </tab-layout>
@@ -49,14 +49,14 @@
         v-else
         :style="{ marginRight: '8px' }"
         :disabled="tableEdit"
-        @click="temporarilySave"
+        @click="handleSaveForm('/serviceApply/editServiceApply')"
       >
         暂存
       </a-button>
       <a-popconfirm
         title="是否确认提交?"
-        @confirm="onSubmit"
-        placement="leftTop"
+        @confirm="handleSaveForm('/serviceApply/submit')"
+        placement="topLeft"
         :disabled="!getIsEditStatus || tableEdit"
       >
         <a-button type="primary" :disabled="!getIsEditStatus || tableEdit">
@@ -110,26 +110,18 @@ export default {
     onEdit () {
       this.$store.commit('service/TEMPORARILY', true)
     },
-    // 暂存
-    temporarilySave () {
+    handleSaveForm (url) {
       this.$store.commit('service/TEMPORARILY', false)
       this.$nextTick(() => {
-        this.$http.post('/serviceApply/editServiceApply', this.currentOrder).then(({ success, data, errorMessage }) => {
+        this.$http.post(url, this.currentOrder).then(({ success, data, errorMessage }) => {
           if (success) {
-            console.log(data)
+            this.$message.success('操作成功')
+            this.close()
+            this.$emit('refresh')
           } else {
             this.$message.error(errorMessage)
           }
         })
-      })
-    },
-    onSubmit () {
-      this.$http.post('/serviceApply/submit', this.currentOrder).then(({ success, errorMessage }) => {
-        if (success) {
-          this.close()
-        } else {
-          this.$message.error(errorMessage)
-        }
       })
     }
   }
@@ -170,6 +162,7 @@ export default {
   .down {
     overflow: auto;
     flex: 1;
+    min-height: 300px;
 
     & /deep/ .ant-tabs-tabpane {
       overflow: auto;

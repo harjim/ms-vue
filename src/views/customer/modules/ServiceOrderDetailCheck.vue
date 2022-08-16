@@ -105,7 +105,10 @@
           <select-company
             style="width: 100%"
             prop="companyName"
-            @changeCompany="(data) => changeCompany(data, row)"
+            @changeCompany="(data, option) => {
+              row.companyName = data
+              row.customerId = option.key
+            }"
           />
         </template>
       </vxe-table-column>
@@ -124,7 +127,7 @@
         </template>
       </vxe-table-column>
       <vxe-table-column title="操作" minWidth="60" align="center" v-if="editing">
-        <template v-slot="{ row, index }">
+        <template v-slot="{ row, rowIndex }">
           <template v-if="$refs.xTable.isActiveByRow(row)">
             <a style="margin-right: 10px;" @click="validAllAndSave">保存</a>
             <a-popconfirm
@@ -137,7 +140,7 @@
           <template v-else>
             <a-popconfirm
               title="是否删除该记录?"
-              @confirm="delTableRow(row, index)"
+              @confirm="delTableRow(row, rowIndex)"
             >
               <a>删除</a>
             </a-popconfirm>
@@ -223,9 +226,6 @@ export default {
         record
       })
       await this.$refs.xTable.setActiveRow(record)
-    },
-    changeCompany (v, r) {
-      r.companyName = v
     },
     async validAllAndSave () {
       const errMap = await this.$refs.xTable.validate().catch(errMap => errMap)

@@ -87,7 +87,7 @@
           </template>
         </vxe-table-column>
         <vxe-table-column title="操作" width="100" align="center">
-          <template v-slot="{ row, index }">
+          <template v-slot="{ row }">
             <template v-if="$refs.xTable.isActiveByRow(row)">
               <a style="margin-right: 10px;" @click="saveRowEvent(row)">保存</a>
               <a-popconfirm
@@ -101,6 +101,7 @@
             </template>
             <template v-else>
               <a-popconfirm
+                placement="left"
                 title="是否删除该记录?"
               >
                 <a>删除</a>
@@ -155,10 +156,12 @@
 
 <script>
 import SelectCompany from '@/components/Selects/SelectCompany'
+import DeptSelect from '@/components/Selects/DeptSelect'
+import SearchSelect from '@/components/Selects/SearchSelect'
 
 export default {
   name: 'WorkRecordAdd',
-  components: { SelectCompany },
+  components: { SearchSelect, DeptSelect, SelectCompany },
   props: {},
   data () {
     return {

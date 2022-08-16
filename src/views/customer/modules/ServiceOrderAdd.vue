@@ -1,9 +1,9 @@
 <template>
   <a-drawer :visible="visible" destroyOnClose title="添加服务申请" :width="960" @close="close">
-    <a-form-model ref="form" :model="form" layout="inline">
+    <a-form-model ref="form" :model="form" :label-col="{ span: 6 }">
       <a-row>
         <a-col :span="12">
-          <a-form-model-item label="申请人">
+          <a-form-model-item label="申请人" :label-col="{ span: 4 }">
             {{ userInfo.realName }}
           </a-form-model-item>
         </a-col>
@@ -16,7 +16,7 @@
 
       <a-row>
         <a-col :span="12">
-          <a-form-model-item label="技术人员">
+          <a-form-model-item label="技术人员" required :label-col="{ span: 4 }">
             <select-man
               placeholder="请输入技术人员"
               style="width:300px;"
@@ -28,11 +28,11 @@
           </a-form-model-item>
         </a-col>
         <a-col :span="12">
-          <a-form-model-item label="财务人员">
+          <a-form-model-item label="财务人员" required>
             <select-man
               placeholder="请输入财务人员"
               style="width:300px;"
-              :type="1"
+              :type="2"
               keyField="fina"
               @blur="getBoss"
               @change="changeStateUser"
@@ -43,7 +43,7 @@
 
       <a-row>
         <a-col :span="12">
-          <a-form-model-item label="技术经理">
+          <a-form-model-item label="技术经理" :label-col="{ span: 4 }">
             {{ boss.techManagerName }}
           </a-form-model-item>
         </a-col>
@@ -55,7 +55,7 @@
       </a-row>
       <a-row>
         <a-col :span="12">
-          <a-form-model-item label="技术总监">
+          <a-form-model-item label="技术总监" :label-col="{ span: 4 }">
             {{ boss.techDirectorName }}
           </a-form-model-item>
         </a-col>
@@ -68,18 +68,18 @@
 
       <a-row>
         <a-col :span="12">
-          <a-form-model-item label="其他人员">
+          <a-form-model-item label="其他人员" :label-col="{ span: 4 }">
             <select-man
               placeholder="请输入其他人员"
               style="width:300px;"
-              :type="1"
+              :type="5"
               keyField="other"
               @change="changeStateUser"
             />
           </a-form-model-item>
         </a-col>
         <a-col :span="12">
-          <a-form-model-item label="预计起止日期">
+          <a-form-model-item label="预计起止日期" required>
             <a-range-picker
               style="width:300px;"
               @change="changeRangeDate"
@@ -87,7 +87,8 @@
           </a-form-model-item>
         </a-col>
       </a-row>
-      <div style="margin-top: 16px;margin-bottom: 16px;">
+
+      <div style="margin-top: 32px;margin-bottom: 32px;">
         <vxe-grid
           ref="xTable"
           resizable
@@ -95,7 +96,7 @@
           keep-source
           size="small"
           :data="customerList"
-          :max-height="200"
+          :max-height="400"
           show-overflow="title"
           :edit-config="{ trigger: 'manual', mode: 'row', autoClear: false }"
           :edit-rules="validRules"
@@ -111,7 +112,10 @@
               <select-company
                 style="width: 100%"
                 prop="companyName"
-                @changeCompany="(data) => row.companyName = data"
+                @changeCompany="(data, option) => {
+                  row.companyName = data
+                  row.customerId = option.key
+                }"
               />
             </template>
           </vxe-table-column>
@@ -125,7 +129,7 @@
               <a-textarea
                 style="width: 100%;"
                 v-model="row.causes"
-                :auto-size="{ minRows: 2, maxRows: 5 }"
+                :auto-size="{ minRows: 1, maxRows: 5 }"
               />
             </template>
           </vxe-table-column>
@@ -156,16 +160,16 @@
           type="dashed"
           block
           icon="plus"
-          style="margin-top: 12px;"
+          style="margin-top: 6px;"
           @click="insertEvent"
         >
           添加
         </a-button>
       </div>
 
-      <a-form-model-item label="备注">
+      <a-form-model-item label="备注" :label-col="{ span: 1 }">
         <a-textarea
-          style="width: 910px;"
+          style="width: 874px;"
           placeholder="请输入"
           v-model="form.remark"
           :auto-size="{ minRows: 2, maxRows: 5 }"
@@ -188,16 +192,18 @@
     >
       <a-button
         :style="{ marginRight: '8px' }"
-        :disabled="tableEdit"
+        :disabled="cantSaveForm"
+        @click="handleSaveForm('/serviceApply/addServiceApply')"
       >
         暂存
       </a-button>
       <a-popconfirm
         title="是否确认提交?"
-        placement="leftTop"
-        :disabled="tableEdit"
+        placement="top"
+        :disabled="cantSaveForm"
+        @confirm="handleSaveForm('/serviceApply/submit')"
       >
-        <a-button type="primary" :disabled="tableEdit">
+        <a-button type="primary" :disabled="cantSaveForm">
           提交
         </a-button>
       </a-popconfirm>
@@ -206,7 +212,7 @@
 </template>
 
 <script>
-import { mapGetters, mapState } from 'vuex'
+import { mapGetters } from 'vuex'
 import SelectMan from '@/components/Selects/SelectMan'
 import moment from 'moment/moment'
 import SelectCompany from '@/components/Selects/SelectCompany'
@@ -235,11 +241,10 @@ export default {
     }
   },
   computed: {
-    ...mapState({
-      editing: state => state.service.editing,
-      tableEdit: state => state.service.tableEdit
-    }),
-    ...mapGetters(['userInfo'])
+    ...mapGetters(['userInfo']),
+    cantSaveForm () {
+      return this.editCus || this.customerList.length === 0 || ((this.form.techList ? this.form.techList.length === 0 : true) && (this.form.finaList ? this.form.finaList.length === 0 : true)) || !this.form.date
+    }
   },
   methods: {
     moment,
@@ -250,6 +255,7 @@ export default {
     close () {
       this.form = {}
       this.boss = {}
+      this.customerList = []
       this.editCus = false
       this.visible = false
     },
@@ -292,7 +298,7 @@ export default {
     changeRangeDate (dates, dateStr) {
       this.form.begin = dateStr[0]
       this.form.end = dateStr[1]
-      this.form.date = `${dateStr[0]}-${dateStr[1]}`
+      this.form.date = `${dateStr[0]} - ${dateStr[1]}`
     },
     async insertEvent () {
       this.editCus = true
@@ -318,11 +324,29 @@ export default {
     },
     delTableRow (index) {
       this.customerList.splice(index, 1)
+    },
+    handleSaveForm (url) {
+      const params = {
+        ...this.boss,
+        ...this.form,
+        customerList: this.customerList
+      }
+      this.$http.post(url, params).then(({ success, data, errorMessage }) => {
+        if (success) {
+          this.$message.success('暂存成功')
+          this.close()
+          this.$emit('refresh')
+        } else {
+          this.$message.error(errorMessage)
+        }
+      })
     }
   }
 }
 </script>
 
-<style scoped>
-
+<style lang="less" scoped>
+& /deep/ .ant-form-item {
+  margin-bottom: 0;
+}
 </style>

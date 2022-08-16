@@ -1,15 +1,21 @@
 <template>
-  <a-tabs class="tabs" animated default-active-key="1" @change="changeTab">
-    <a-tab-pane key="1" tab="审核" v-if="$auth('customer:serviceApply:review')">
-      <a-textarea
-        placeholder="请输入审核意见"
-        :auto-size="{ minRows: 3, maxRows: 5 }"
-      />
+  <a-tabs class="tabs" animated :activeKey="activeKey" @change="changeTab">
+    <a-tab-pane key="1" tab="审核" v-if="canReview">
+      <a-form :form="form">
+        <a-form-item>
+          <a-textarea
+            v-decorator="['suggestion', {rules: [{required: false, message: '请输入审批意见'}, { min: 5, message: '审批意见不能少于5个字符'}]}]"
+            placeholder="请输入审核意见"
+            :auto-size="{ minRows: 3, maxRows: 5 }"
+          />
+        </a-form-item>
+      </a-form>
       <a-row>
         <a-col :span="4" :offset="10" style="margin-top: 16px;display: flex;justify-content: space-between;">
-          <a-button size="small">通过</a-button>
+          <a-button size="small" @click="review(true)">通过</a-button>
           <a-popconfirm
             title="是否确认驳回？"
+            @confirm="review(false)"
           >
             <a-button type="danger" size="small">驳回</a-button>
           </a-popconfirm>
@@ -23,6 +29,7 @@
         show-overflow="title"
         resizable
         auto-resize
+        :max-height="200"
         size="small"
         :loading="loading"
         :data="logList"
@@ -74,12 +81,14 @@
 
 <script>
 import { getStatusName, statusColor } from '@/utils/processDoc/auditStatus'
+import { mapState } from 'vuex'
 
 export default {
   name: 'ServiceOrderDetailAudit',
   props: {
-    instanceId: {
-      type: Number
+    storeName: {
+      type: String,
+      default: 'service'
     }
   },
   data () {
@@ -87,14 +96,31 @@ export default {
       statusColor,
       defaultTab: undefined,
       loading: false,
-      logList: []
+      activeKey: undefined,
+      logList: [],
+      form: this.$form.createForm(this)
     }
   },
-  beforeMount () {
-    if (this.$auth('customer:serviceApply:review')) {
-      this.defaultTab = '1'
+  computed: {
+    ...mapState({
+      currentOrder: state => state.service.currentOrder
+    }),
+    canReview () {
+      return this.currentOrder.hasPermission && this.$auth('customer:serviceApply:review')
+    }
+  },
+  watch: {
+    activeKey (val) {
+      if (val === '2') {
+        this.getAuditLog()
+      }
+    }
+  },
+  mounted () {
+    if (this.canReview) {
+      this.activeKey = '1'
     } else if (this.$auth('customer:serviceApply:audit')) {
-      this.defaultTab = '2'
+      this.activeKey = '2'
       this.getAuditLog()
     }
   },
@@ -102,8 +128,9 @@ export default {
     getStatusName,
     // 获取日志
     getAuditLog () {
+      if (!this.currentOrder.instanceId) return
       this.loading = true
-      this.$http.get('/rdFeeAudit/getAuditLog', { params: { instanceId: this.instanceId } }).then(({
+      this.$http.get('/rdFeeAudit/getAuditLog', { params: { instanceId: this.currentOrder.instanceId } }).then(({
         success,
         data,
         errorMessage
@@ -118,7 +145,30 @@ export default {
       })
     },
     changeTab (v) {
+      this.activeKey = v
       if (v === '2') this.getAuditLog()
+    },
+    review (flag) {
+      this.form.validateFields((err, val) => {
+        if (!err) {
+          const params = {
+            ...val,
+            status: flag ? 1 : 2,
+            instanceId: this.currentOrder.instanceId
+          }
+          this.$http.post('/serviceApply/review', params).then(({ success, errorMessage }) => {
+            if (success) {
+              this.$message.success('审核成功')
+              this.$store.commit(`${this.storeName}/CHANGE_PERMISSION`, false)
+              this.activeKey = '2'
+              this.form.resetFields()
+              this.$emit('refresh')
+            } else {
+              this.$message.error(errorMessage || '审核失败')
+            }
+          })
+        }
+      })
     }
   }
 }

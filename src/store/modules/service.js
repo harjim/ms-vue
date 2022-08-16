@@ -62,6 +62,9 @@ const service = {
       state.editing = editing
       state.currentOrder = {}
       state.tableEdit = false
+    },
+    CHANGE_PERMISSION: (state, flag) => {
+      state.currentOrder.hasPermission = flag
     }
   },
 

@@ -120,7 +120,10 @@ export default {
           params[this.searchField] = v
           this.$http
             .get(this.url, {
-              params
+              params: {
+                ...params,
+                hasDept: true
+              }
             })
             .then(res => {
               this.data = res.data

@@ -8,7 +8,12 @@
     @search="debounceSearch"
   >
     <template slot="dataSource">
-      <a-select-option v-for="item in dataSource" :key="`${item.customerId}`" :value="`${item[prop]}`">
+      <a-select-option
+        v-for="item in dataSource"
+        :key="`${item.customerId}`"
+        :value="`${item[prop]}`"
+        :datasource="item"
+      >
         {{ item.companyName }}
       </a-select-option>
     </template>
@@ -26,6 +31,10 @@ export default {
     prop: {
       type: String,
       default: 'customerId'
+    },
+    url: {
+      type: String,
+      default: '/serviceApply/getCustomerList'
     }
   },
   data () {
@@ -57,7 +66,7 @@ export default {
       }
     },
     getCustomerList (companyName) {
-      this.$http.get('/serviceApply/getCustomerList', { params: { companyName } }).then(({
+      this.$http.get(this.url, { params: { companyName } }).then(({
         success,
         errorMessage,
         data

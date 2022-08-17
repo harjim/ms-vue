@@ -134,7 +134,7 @@
             </template>
           </vxe-table-column>
           <vxe-table-column title="操作" minWidth="60" align="center">
-            <template v-slot="{ row, index }">
+            <template v-slot="{ row, rowIndex }">
               <template v-if="$refs.xTable.isActiveByRow(row)">
                 <a style="margin-right: 10px;" @click="validAllAndSave">保存</a>
                 <a-popconfirm
@@ -147,7 +147,7 @@
               <template v-else>
                 <a-popconfirm
                   title="是否删除该记录?"
-                  @confirm="delTableRow(index)"
+                  @confirm="delTableRow(rowIndex)"
                 >
                   <a>删除</a>
                 </a-popconfirm>
@@ -197,16 +197,17 @@
       >
         暂存
       </a-button>
-      <a-popconfirm
+      <a-popconfir
         title="是否确认提交?"
-        placement="top"
+        placement="left"
+        :autoAdjustOverflow="false"
         :disabled="cantSaveForm"
         @confirm="handleSaveForm('/serviceApply/submit')"
       >
         <a-button type="primary" :disabled="cantSaveForm">
           提交
         </a-button>
-      </a-popconfirm>
+      </a-popconfir>
     </div>
   </a-drawer>
 </template>
@@ -302,10 +303,7 @@ export default {
     },
     async insertEvent () {
       this.editCus = true
-      const record = {
-        causes: '',
-        companyName: ''
-      }
+      const record = {}
       this.customerList.unshift(record)
       await this.$refs.xTable.setActiveRow(record)
     },

@@ -56,7 +56,8 @@
       <a-popconfirm
         title="是否确认提交?"
         @confirm="handleSaveForm('/serviceApply/submit')"
-        placement="topLeft"
+        placement="left"
+        :autoAdjustOverflow="false"
         :disabled="!getIsEditStatus || tableEdit"
       >
         <a-button type="primary" :disabled="!getIsEditStatus || tableEdit">

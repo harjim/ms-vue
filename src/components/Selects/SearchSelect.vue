@@ -2,7 +2,7 @@
   <a-select
     :mode="multiple?'multiple' : 'default' "
     showSearch
-    :allowClear="true"
+    :allowClear="allowClear"
     :value="val"
     :placeholder="placeholder"
     :showArrow="false"
@@ -78,6 +78,10 @@ export default {
       type: Object,
       default: () => {
       }
+    },
+    allowClear: {
+      type: Boolean,
+      default: true
     }
   },
   data () {
@@ -86,6 +90,24 @@ export default {
       prevTime: 0,
       val: undefined,
       displayTitle: undefined
+    }
+  },
+  mounted () {
+    if (this.value) {
+      if (this.value) {
+        if (this.multiple) {
+          this.data = [...this.value]
+          this.val = this.value.map(a => a[this.sKey])
+          this.displayTitle = this.value.map(a => a[this.sTitle]).join(',')
+        } else {
+          this.data = [this.value]
+          this.val = this.value[this.sKey]
+          this.displayTitle = this.value[this.sTitle]
+        }
+      } else {
+        this.data = []
+        this.val = undefined
+      }
     }
   },
   watch: {

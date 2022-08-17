@@ -89,6 +89,10 @@ export default {
     storeName: {
       type: String,
       default: 'service'
+    },
+    detail: {
+      type: String,
+      default: 'currentOrder'
     }
   },
   data () {
@@ -103,10 +107,11 @@ export default {
   },
   computed: {
     ...mapState({
-      currentOrder: state => state.service.currentOrder
+      currentOrder: state => state.service.currentOrder,
+      recordOrder: state => state.workRecord.recordOrder
     }),
     canReview () {
-      return this.currentOrder.hasPermission && this.$auth('customer:serviceApply:review')
+      return this[this.detail].hasPermission && this.$auth('customer:serviceApply:review')
     }
   },
   watch: {
@@ -121,16 +126,15 @@ export default {
       this.activeKey = '1'
     } else if (this.$auth('customer:serviceApply:audit')) {
       this.activeKey = '2'
-      this.getAuditLog()
     }
   },
   methods: {
     getStatusName,
     // 获取日志
     getAuditLog () {
-      if (!this.currentOrder.instanceId) return
+      if (!this[this.detail].instanceId) return
       this.loading = true
-      this.$http.get('/rdFeeAudit/getAuditLog', { params: { instanceId: this.currentOrder.instanceId } }).then(({
+      this.$http.get('/rdFeeAudit/getAuditLog', { params: { instanceId: this[this.detail].instanceId } }).then(({
         success,
         data,
         errorMessage
@@ -154,9 +158,10 @@ export default {
           const params = {
             ...val,
             status: flag ? 1 : 2,
-            instanceId: this.currentOrder.instanceId
+            instanceId: this[this.detail].instanceId
           }
-          this.$http.post('/serviceApply/review', params).then(({ success, errorMessage }) => {
+          const url = this.detail === 'currentOrder' ? '/serviceApply/review' : '/serviceRecord/review'
+          this.$http.post(url, params).then(({ success, errorMessage }) => {
             if (success) {
               this.$message.success('审核成功')
               this.$store.commit(`${this.storeName}/CHANGE_PERMISSION`, false)

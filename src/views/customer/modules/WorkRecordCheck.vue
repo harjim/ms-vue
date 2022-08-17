@@ -20,30 +20,61 @@
                 {{ order.serviceNo }}
               </template>
               <template v-else>
-                <a-input placeholder="请输入关联单号"/>
+                <a-popover>
+                  <template slot="content">
+                    <ystable
+                      ref="pTable"
+                      query-url="/serviceRecord/getServiceNo"
+                      :params="order"
+                      size="mini"
+                      :max-height="200"
+                      show-overflow="title"
+                      @cell-click="clickRow"
+                    >
+                      <vxe-table-column field="serviceNo" title="服务单号" minWidth="140"/>
+                      <vxe-table-column field="ownerName" title="业务员" width="100"/>
+                      <vxe-table-column field="deptName" title="所属部门" width="100"/>
+                    </ystable>
+                  </template>
+                  <a-input
+                    readOnly
+                    v-model="order.serviceNo"
+                    style="width: 200px;"
+                    :disabled="!order.customerId"
+                    placeholder="请选择服务单号"
+                  />
+                </a-popover>
               </template>
             </a-descriptions-item>
             <a-descriptions-item label="业务员">
               <template v-if="!editing">
-                {{ order.salesman }}
+                {{ order.ownerName }}
               </template>
               <template v-else>
-                <a-input placeholder="请输入业务员"/>
+                <search-select
+                  style="width: 200px;"
+                  url="/user/userForSelect"
+                  searchField="realName"
+                  sTitle="realName"
+                  placeholder="请输入业务员"
+                  v-model="owner"
+                  :allowClear="false"
+                />
               </template>
             </a-descriptions-item>
             <a-descriptions-item label="所属部门">
               <template v-if="!editing">
-                {{ deepTreeTitle(order.deptId) }}
+                {{ order.deptName }}
               </template>
               <template v-else>
-                <a-input placeholder="请输入所属部门"/>
+                <a-input v-model="order.deptName" placeholder="请输入所属部门" disabled/>
               </template>
             </a-descriptions-item>
             <a-descriptions-item label="创建人">
-              {{ order.ownerName }}
+              {{ order.creatorName }}
             </a-descriptions-item>
             <a-descriptions-item label="创建时间">
-              {{ order.date }}
+              {{ order.createTime }}
             </a-descriptions-item>
           </a-descriptions>
           <div style="position: absolute;top: 0;right: 0;" v-if="!editing">
@@ -59,20 +90,24 @@
           show-footer
           keep-source
           size="small"
-          :data="order.matter"
+          :data="order.list"
           :max-height="400"
           :footer-method="footerMethod"
           show-overflow="title"
           :edit-config="{ trigger: 'manual', mode: 'row', autoClear: false }"
+          :edit-rules="validRules"
         >
           <vxe-table-column type="seq" width="60" fixed="left" title="序号"/>
-          <vxe-table-column field="causes" title="事项" width="200" :edit-render="{ immediate: true }">
+          <vxe-table-column field="itemType" title="事项" width="160" :edit-render="{ immediate: true }">
+            <template v-slot="{ row }">
+              <div>{{ type2value(row.itemType) }}</div>
+            </template>
             <template v-slot:edit="{ row }">
-              <a-input
-                v-model="row.causes"
-                placeholder="请输入出差事项"
-                style="width: 100%;"
-                :edit-render="{ immediate: true }"/>
+              <a-select v-model="row.itemType" style="width: 100%;" placeholder="请选择事项">
+                <a-select-option v-for="item in dictionary" :key="item.key">
+                  {{ item.value }}
+                </a-select-option>
+              </a-select>
             </template>
           </vxe-table-column>
           <vxe-table-column
@@ -83,15 +118,15 @@
             :edit-render="{ immediate: true }"
           >
             <template v-slot:edit="{ row }">
-              <a-range-picker style="width: 100%;"/>
+              <a-range-picker style="width: 100%;" @change="changeRangeDate"/>
             </template>
           </vxe-table-column>
-          <vxe-table-column field="cost" title="费用" align="right" width="180" :edit-render="{ immediate: true }">
+          <vxe-table-column field="amount" title="费用" align="right" width="180" :edit-render="{ immediate: true }">
             <template v-slot:edit="{ row }">
               <a-input-number
                 :min="0"
                 :step="0.01"
-                v-model="row.cost"
+                v-model="row.amount"
                 placeholder="请输入费用金额"
                 style="width: 100%;"
                 @change="$refs.xTable.updateFooter()"/>
@@ -145,7 +180,7 @@
       </template>
       <template #down>
         <template v-if="$auth('customer:serviceApply:review') || $auth('customer:serviceApply:audit')">
-          <ServiceOrderDetailAudit @refresh="$emit('refresh')" storeName="workRecord"/>
+          <ServiceOrderDetailAudit @refresh="$emit('refresh')" storeName="workRecord" detail="recordOrder"/>
         </template>
       </template>
     </tab-layout>
@@ -174,16 +209,19 @@
       <a-button
         v-else
         :style="{ marginRight: '8px' }"
-        :disabled="tableEdit"
+        :disabled="tableEdit || order.list.length === 0"
+        @click="handleSaveForm('/serviceRecord/editServiceRecord')"
       >
         暂存
       </a-button>
       <a-popconfirm
         title="是否确认提交?"
-        placement="leftTop"
+        placement="left"
+        :autoAdjustOverflow="false"
         :disabled="!getIsEditStatus || tableEdit"
+        @confirm="handleSaveForm('/serviceRecord/submit')"
       >
-        <a-button type="primary" :disabled="!getIsEditStatus || tableEdit">
+        <a-button type="primary" :disabled="!getIsEditStatus || tableEdit || order.list.length === 0">
           提交
         </a-button>
       </a-popconfirm>
@@ -192,16 +230,17 @@
 </template>
 
 <script>
+import ystable from '@/components/Table/ystable'
 import { mapGetters, mapState } from 'vuex'
-import { deepTree } from '@/utils/util'
 import ServiceOrderDetailAudit from '@/views/customer/modules/ServiceOrderDetailAudit'
 import TabLayout from '@/views/customer/modules/AuditProgress/modules/TabLayout'
+import SearchSelect from '@/components/Selects/SearchSelect'
 
 export default {
   name: 'WorkRecordCheck',
-  components: { TabLayout, ServiceOrderDetailAudit },
+  components: { SearchSelect, TabLayout, ServiceOrderDetailAudit, ystable },
   props: {
-    deptArr: {
+    dictionary: {
       type: Array,
       default: () => []
     }
@@ -209,7 +248,14 @@ export default {
   data () {
     return {
       visible: false,
-      tableEdit: false
+      tableEdit: false,
+      serviceNoList: [],
+      owner: {},
+      validRules: {
+        itemType: [{ required: true, message: '事由必须填写', trigger: 'blur' }],
+        date: [{ required: true, message: '起始日期必须选择', trigger: 'blur' }],
+        amount: [{ required: true, message: '金额必须填写', trigger: 'blur' }]
+      }
     }
   },
   computed: {
@@ -219,19 +265,26 @@ export default {
     }),
     ...mapGetters('workRecord', ['getIsEditStatus', 'getStatusColor', 'getStatusTitle'])
   },
-  watch: {},
+  watch: {
+    owner (v) {
+      if (v) {
+        this.$store.commit('workRecord/CHANGE_OWNER', v)
+      }
+    }
+  },
   methods: {
     open () {
+      this.owner = {
+        id: this.order.ownerId,
+        realName: this.order.ownerName,
+        deptName: this.order.deptName
+      }
+      this.getServiceNoList()
       this.visible = true
     },
     close () {
-      this.visible = false
+      Object.assign(this.$data, this.$options.data())
       this.$store.commit('workRecord/SET_ORDER', {})
-    },
-    deepTreeTitle (value) {
-      if (!value) return '-'
-      const temp = deepTree(this.deptArr, value)
-      return temp.title
     },
     footerMethod ({ columns, data }) {
       return [columns.map((col, _colI) => {
@@ -240,8 +293,8 @@ export default {
         }
         if (_colI === 3) {
           return data.reduce((total, row) => {
-            if (isNaN(row.cost)) return total
-            return total + row.cost
+            if (isNaN(row.amount)) return total
+            return total + row.amount
           }, 0).toFixed(2)
         }
         return ''
@@ -272,6 +325,66 @@ export default {
         this.tableEdit = false
         await this.$refs.xTable.clearActived()
       }
+    },
+    type2value (key) {
+      let result = '-'
+      if (key) {
+        this.dictionary.forEach(item => {
+          if (item.key === key) {
+            result = item.value
+            return false
+          }
+        })
+      }
+      return result
+    },
+    getServiceNoList () {
+      this.$http.get('/serviceRecord/getCustomerList', {
+        params: {
+          companyName: this.order.companyName
+        }
+      }).then(({ success, data }) => {
+        if (success) {
+          if (data.list) {
+            const temp = []
+            for (const listKey in data.list) {
+              temp.push({
+                key: data.list[listKey],
+                label: data.list[listKey]
+              })
+            }
+            this.serviceNoList = temp
+          }
+        }
+      })
+    },
+    clickRow ({ row }) {
+      this.$store.commit('workRecord/CHANGE_SERVICE', row)
+      if (row.ownerId) {
+        this.owner = {
+          id: row.ownerId,
+          realName: row.ownerName,
+          deptId: row.deptId,
+          deptName: row.deptName
+        }
+      }
+    },
+    changeRangeDate (dates, dateStr) {
+      this.$store.commit('workRecord/CHANGE_DATE', dateStr)
+    },
+    handleSaveForm (url) {
+      this.$store.commit('workRecord/SET_EDITING', false)
+      this.$nextTick(() => {
+        this.$http.post(url, this.order).then(({ success, errorMessage }) => {
+          if (success) {
+            this.$message.success('操作成功')
+            this.close()
+            this.$emit('refresh')
+          } else {
+            this.$message.error(errorMessage)
+          }
+        })
+      })
     }
   },
   beforeCreate () {

@@ -49,17 +49,28 @@
           custom: true
         }"
         show-overflow="tooltip"
+        @checkbox-all="selectAllEvent"
+        @checkbox-change="selectChangeEvent"
       >
         <template v-slot:buttons>
           <template v-if="$auth('customer:workRecord:add')">
-            <a-button type="primary" @click="$refs.WorkRecordAdd.open()">添加</a-button>
+            <a-button style="margin-right: 12px;" type="primary" @click="$refs.WorkRecordAdd.open()">添加</a-button>
+          </template>
+          <template v-if="$auth('customer:workRecord:del')">
+            <a-button
+              style="margin-right: 12px;"
+              type="primary"
+              :disabled="selectedRowKeys.length === 0"
+              @click="delServices">删除
+            </a-button>
           </template>
         </template>
+        <vxe-table-column type="checkbox" width="50" align="center" fixed="left"/>
         <vxe-table-column
           title="客户名称"
           field="companyName"
           fixed="left"
-          width="200"
+          width="100"
         >
           <template v-slot="{ row }">
             <a v-if="$auth('customer:workRecord:check')" @click="openDetail(row)">{{ row.companyName }}</a>
@@ -75,14 +86,10 @@
         />
         <vxe-table-column
           title="业务员"
-          field="salesman"
+          field="ownerName"
           width="100"
         />
-        <vxe-table-column title="所属部门" width="100">
-          <template v-slot="{ row }">
-            <div>{{ deepTreeTitle(row.deptId) }}</div>
-          </template>
-        </vxe-table-column>
+        <vxe-table-column title="所属部门" width="100" field="deptName"/>
         <vxe-table-column title="事项" width="60" align="right">
           <template v-slot="{ row }">
             <a-popover
@@ -90,20 +97,24 @@
               placement="bottom"
               destroyTooltipOnHide
             >
-              <div>{{ row.matter.length }}</div>
+              <div>{{ row.list.length }}</div>
               <template slot="content">
                 <vxe-grid
                   auto-resize
-                  :data="row.matter"
+                  :data="row.list"
                   show-overflow="title"
                   max-height="400"
                   show-footer
                   :footerMethod="footerMethod"
                 >
                   <vxe-table-column type="seq" title="序号" width="60"/>
-                  <vxe-table-column field="causes" title="事项" width="100"></vxe-table-column>
+                  <vxe-table-column field="itemType" title="事项" width="100">
+                    <template v-slot="{ row }">
+                      <div>{{ type2value(row.itemType) }}</div>
+                    </template>
+                  </vxe-table-column>
                   <vxe-table-column field="date" title="起止时间" align="center" width="100"></vxe-table-column>
-                  <vxe-table-column field="cost" title="费用" width="100"></vxe-table-column>
+                  <vxe-table-column field="amount" title="费用" width="100"></vxe-table-column>
                   <vxe-table-column field="remark" title="备注" minWidth="100"></vxe-table-column>
                 </vxe-grid>
               </template>
@@ -112,12 +123,12 @@
         </vxe-table-column>
         <vxe-table-column title="总费用" width="100" align="right">
           <template v-slot="{ row }">
-            <div>{{ countArrCost(row.matter) }}</div>
+            <div>{{ countArrCost(row.list) }}</div>
           </template>
         </vxe-table-column>
         <vxe-table-column
           title="创建人"
-          field="ownerName"
+          field="creatorName"
           width="100"
         />
         <vxe-table-column
@@ -148,8 +159,8 @@
         />
       </ystable>
 
-      <WorkRecordCheck ref="WorkRecordCheck" :deptArr="deptArr" @refresh="onSearch"/>
-      <WorkRecordAdd ref="WorkRecordAdd"/>
+      <WorkRecordCheck ref="WorkRecordCheck" :dictionary="dictionary" @refresh="onSearch"/>
+      <WorkRecordAdd ref="WorkRecordAdd" :dictionary="dictionary" @refresh="onSearch"/>
     </template>
     <template v-else>
       <a-empty :description="false"/>
@@ -162,7 +173,6 @@ import ystable from '@/components/Table/ystable'
 import SelectCompany from '@/components/Selects/SelectCompany'
 import { getStatusName, statusColor, statusMap } from '@/utils/processDoc/auditStatus'
 import SearchSelect from '@/components/Selects/SearchSelect'
-import { deepTree } from '@/utils/util'
 import WorkRecordAdd from '@/views/customer/modules/WorkRecordAdd'
 import WorkRecordCheck from '@/views/customer/modules/WorkRecordCheck'
 
@@ -175,8 +185,10 @@ export default {
       statusMap,
       statusColor,
       temp: {},
-      deptArr: [],
-      form: {}
+      dictionary: [],
+      form: {},
+      selectedRowKeys: [],
+      selectUser: []
     }
   },
   computed: {},
@@ -186,13 +198,9 @@ export default {
     onSearch () {
       this.$refs.xTable.refresh(true)
     },
-    deepTreeTitle (value) {
-      const temp = deepTree(this.deptArr, value)
-      return temp.title || '-'
-    },
     countArrCost (arr) {
       return arr.reduce((total, row) => {
-        return total + row.cost
+        return total + row.amount
       }, 0).toFixed(2)
     },
     footerMethod ({ columns, data }) {
@@ -209,6 +217,43 @@ export default {
     openDetail (row) {
       this.$store.commit('workRecord/SET_ORDER', row)
       this.$refs.WorkRecordCheck.open()
+    },
+    type2value (key) {
+      let result = '-'
+      if (key) {
+        this.dictionary.forEach(item => {
+          if (item.key === key) {
+            result = item.value
+            return false
+          }
+        })
+      }
+      return result
+    },
+    selectChangeEvent ({ checked, records }) {
+      this.selectedRowKeys = records.map(item => {
+        return item.id
+      })
+      this.selectUser = records
+    },
+    selectAllEvent ({ checked, records }) {
+      this.selectedRowKeys = records.map(item => {
+        return item.id
+      })
+      this.selectUser = records
+    },
+    delServices () {
+      this.$http.post('/serviceRecord/delServiceRecord', { ids: this.selectedRowKeys }).then(({
+        success,
+        errorMessage
+      }) => {
+        if (success) {
+          this.$message.success('删除成功')
+          this.onSearch()
+        } else {
+          this.$message.error(errorMessage)
+        }
+      })
     }
   },
   beforeCreate () {
@@ -216,10 +261,10 @@ export default {
   created () {
   },
   beforeMount () {
-    this.$http.get('/dept/tree').then(({ success, data }) => {
-      if (success) {
-        this.deptArr = data
-      }
+    this.$http.get('/sysDictionary/getDictionary', {
+      params: { type: 17 }
+    }).then(({ data }) => {
+      this.dictionary = data
     })
   },
   mounted () {

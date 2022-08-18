@@ -5,15 +5,12 @@
     :value="value"
     :placeholder="placeholder"
     :filter-option="false"
-    :not-found-content="undefined"
+    :not-found-content="fetching ? undefined : null"
     @search="fetchUser"
     @change="handleChange"
     @blur="$emit('blur', keyField, value, type)"
   >
-    <template slot="notFoundContent">
-      <a-spin v-if="fetching"/>
-      <a-empty v-else/>
-    </template>
+    <a-spin v-if="fetching" slot="notFoundContent" :delay="300"/>
     <a-select-option v-for="item in dataSource" :key="item.userId">{{ item.userName }}</a-select-option>
   </a-select>
 </template>
@@ -48,10 +45,10 @@ export default {
     }
   },
   mounted () {
-    this.value = this.list.map(item => ({
+    this.value = this.list ? this.list.map(item => ({
       key: item.userId,
       label: item.userName
-    }))
+    })) : []
   },
   methods: {
     debounce (fn, delay = 800) {
@@ -93,6 +90,7 @@ export default {
         fetching: false
       })
       this.$emit('change', this.keyField, value)
+      this.dataSource = []
     }
   }
 }

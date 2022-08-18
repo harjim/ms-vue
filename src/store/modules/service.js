@@ -29,13 +29,11 @@ const service = {
       delete temp.lastUpdateTime
       state.currentOrder = temp
     },
-    TEMPORARILY: (state, flag) => {
-      state.editing = flag
-    },
     SET_TABLE_EDIT: (state, flag) => {
       state.tableEdit = flag
     },
     CHANGE_USER: (state, { key, data }) => {
+      console.log(data)
       state.currentOrder[key] = data
     },
     CHANGE_BOSS: (state, { key, data }) => {

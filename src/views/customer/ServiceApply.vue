@@ -3,7 +3,10 @@
     <template v-if="$auth('customer:serviceApply:search')">
       <a-form-model layout="inline" ref="form" :model="form">
         <a-form-model-item label="客户名称">
-          <select-company style="width: 190px;" prop="companyName" @changeCompany="v => form.companyName = v"/>
+          <a-input v-model="form.companyName" placeholder="请输入客户名称" style="width: 240px;"/>
+        </a-form-model-item>
+        <a-form-model-item label="单号">
+          <a-input v-model="form.serviceNo" placeholder="请输入单号" style="width: 240px;"/>
         </a-form-model-item>
         <a-form-model-item label="财务人员">
           <search-select
@@ -11,13 +14,13 @@
             searchField="realName"
             sTitle="realName"
             placeholder="请输入财务人员"
-            style="width:190px;"
-            v-model="search.finaName"
+            style="width: 240px;"
+            v-model="search.fina"
             @change="v => {
               if (v) {
-                form.finaName = v.realName;
+                form.finaId = v.id;
               } else {
-                form.finaName = null;
+                form.finaId = null;
               }
             }"
           />
@@ -28,13 +31,13 @@
             searchField="realName"
             sTitle="realName"
             placeholder="请输入技术人员"
-            style="width:190px;"
-            v-model="search.techName"
+            style="width: 240px;"
+            v-model="search.tech"
             @change="v => {
               if (v) {
-                form.techName = v.realName;
+                form.techId = v.id;
               } else {
-                form.techName = null;
+                form.techId = null;
               }
             }"
           />
@@ -45,22 +48,25 @@
             searchField="realName"
             sTitle="realName"
             placeholder="请输入申请人"
-            style="width:190px;"
-            v-model="search.ownerName"
+            style="width: 240px;"
+            v-model="search.owner"
             @change="v => {
               if (v) {
-                form.ownerName = v.realName;
+                form.ownerId = v.id;
               } else {
-                form.ownerName = null;
+                form.ownerId = null;
               }
             }"
           />
         </a-form-model-item>
+        <a-form-model-item label="处理人">
+          <a-input v-model="form.auditUsers" placeholder="请输入处理人" style="width: 240px;"/>
+        </a-form-model-item>
         <a-form-model-item label="所属部门">
-          <dept-select style="width: 190px;" v-model="form.deptId" placeholder="请输入所属部门"/>
+          <dept-select style="width: 240px;" v-model="form.deptId" placeholder="请输入所属部门"/>
         </a-form-model-item>
         <a-form-model-item label="流程状态">
-          <a-select v-model="form.status" placeholder="请输入流程状态" style="width: 190px;" allowClear>
+          <a-select v-model="form.status" placeholder="请输入流程状态" style="width: 240px;" allowClear>
             <a-select-option v-for="(v, k) in statusMap" :key="k" :value="k">{{ v }}</a-select-option>
           </a-select>
         </a-form-model-item>
@@ -96,13 +102,13 @@
             </a-button>
           </template>
         </template>
-        <vxe-table-column type="checkbox" width="50" align="center" fixed="left"/>
+        <vxe-table-column type="checkbox" width="64" align="center" fixed="left"/>
         <vxe-table-column
           title="服务单号"
           field="serviceNo"
           align="center"
           fixed="left"
-          width="200"
+          width="150"
         >
           <template v-slot="{ row }">
             <a v-if="$auth('customer:serviceApply:check')" @click="openDetail(row)">{{
@@ -115,75 +121,75 @@
           title="客户名称"
           field="customers"
           fixed="left"
-          width="200"
+          width="160"
         ></vxe-table-column>
         <vxe-table-column
           title="预计起止日期"
           field="date"
           align="center"
-          width="200"
+          width="170"
+        />
+        <vxe-table-column
+          title="申请人"
+          field="ownerName"
+          width="100"
+        />
+        <vxe-table-column
+          title="所属部门"
+          field="deptName"
+          width="100"
         />
         <vxe-table-column
           title="技术人员"
           field="techList"
-          width="200"
+          width="100"
         >
           <template v-slot="{ row }">
-            <div class="txt-hide">{{ row.techList.map(i => i.userName).join(', ') }}</div>
+            {{ row.techList ? row.techList.map(i => i.userName).join(', ') : '-' }}
           </template>
         </vxe-table-column>
         <vxe-table-column
           title="财务人员"
           field="finaList"
-          width="200"
+          width="100"
         >
           <template v-slot="{ row }">
-            <div class="txt-hide">{{ row.finaList.map(i => i.userName).join(', ') }}</div>
+            {{ row.finaList ? row.finaList.map(i => i.userName).join(', ') : '-' }}
           </template>
         </vxe-table-column>
         <vxe-table-column
           title="财务人员"
           field="otherList"
-          width="200"
+          width="100"
         >
           <template v-slot="{ row }">
-            <div class="txt-hide">{{ row.otherList.map(i => i.userName).join(', ') }}</div>
+            {{ row.otherList ? row.otherList.map(i => i.userName).join(', ') : '-' }}
           </template>
         </vxe-table-column>
         <vxe-table-column
-          title="申请人"
-          field="ownerName"
-          width="200"
-        />
-        <vxe-table-column
-          title="所属部门"
-          field="deptName"
-          width="200"
-        />
-        <vxe-table-column
           title="流程状态"
           field="status"
-          width="200"
+          width="90"
         >
           <template v-slot="{ row }">
-            <a-badge :color="statusColor[row.status]" :text="getStatusName(row.status)"/>
+            <a-badge :color="statusColor[row.status === null ? 5 : row.status]" :text="getStatusName(row.status)"/>
           </template>
         </vxe-table-column>
         <vxe-table-column
           title="当前处理人"
           field="auditUsers"
-          width="200"
+          width="100"
         />
         <vxe-table-column
           title="创建时间"
           field="createTime"
           align="center"
-          width="200"
+          width="140"
         />
         <vxe-table-column
           title="最后修改时间"
           field="lastUpdateTime"
-          width="200"
+          width="140"
         />
       </ystable>
       <ServiceOrderDetail ref="ServiceOrderDetail" @refresh="onSearch"/>
@@ -227,6 +233,8 @@ export default {
   methods: {
     getStatusName,
     onSearch () {
+      this.selectedRowKeys = []
+      this.selectUser = []
       this.$refs.xTable.refresh(true)
     },
     selectChangeEvent ({ checked, records }) {

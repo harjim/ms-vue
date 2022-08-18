@@ -49,17 +49,19 @@ const status = {
   KV: statusMap,
   color: statusColor
 }
+
 /**
-  * @description: 判断是否可以编辑和提交
-  * @param { number } status
-  * @return { boolean } boolean 可以:true ;不可:false
-  */
+ * @description: 判断是否可以编辑和提交
+ * @param { number } status
+ * @return { boolean } boolean 可以:true ;不可:false
+ */
 function isEditStatus (status) {
   if (status === null) {
     status = 5
   }
   return IS_EDIT.includes(status * 1)
 }
+
 /**
  * @description: 判断是否财务文档
  * @param {*} sign 1 是财务文档 0 不是
@@ -78,20 +80,21 @@ function isFinance (sign) {
 function isAuth (obj, sign) {
   return obj.$auth(sign)
 }
+
 /**
-  * @description: 判断是否可以导出
-  * @param { number} status
-  * @return { boolean } boolean
-  */
+ * @description: 判断是否可以导出
+ * @param { number} status
+ * @return { boolean } boolean
+ */
 function isExportStatus (status) {
   return IS_EXPORT.includes(status * 1)
 }
 
 /**
-  * @description: 状态编码转中文名称
-  * @param { number } status
-  * @return { string } string
-  */
+ * @description: 状态编码转中文名称
+ * @param { number } status
+ * @return { string } string
+ */
 function getStatusName (status) {
   if (status === undefined || status === null) {
     status = 5

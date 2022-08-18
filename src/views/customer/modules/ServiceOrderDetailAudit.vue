@@ -1,26 +1,29 @@
 <template>
   <a-tabs class="tabs" animated :activeKey="activeKey" @change="changeTab">
     <a-tab-pane key="1" tab="审核" v-if="canReview">
-      <a-form :form="form">
-        <a-form-item>
+      <a-form-model
+        ref="form"
+        :model="form"
+        :rules="{suggestion: [{required: true, message: '请输入审批意见'}, { min: 5, max: 200, message: '审批意见不能少于5个字符'}]}">
+        <a-form-model-item prop="suggestion">
           <a-textarea
-            v-decorator="['suggestion', {rules: [{required: false, message: '请输入审批意见'}, { min: 5, message: '审批意见不能少于5个字符'}]}]"
+            v-model="form.suggestion"
             placeholder="请输入审核意见"
             :auto-size="{ minRows: 3, maxRows: 5 }"
           />
-        </a-form-item>
-      </a-form>
-      <a-row>
-        <a-col :span="4" :offset="10" style="margin-top: 16px;display: flex;justify-content: space-between;">
-          <a-button size="small" @click="review(true)">通过</a-button>
-          <a-popconfirm
-            title="是否确认驳回？"
-            @confirm="review(false)"
-          >
-            <a-button type="danger" size="small">驳回</a-button>
-          </a-popconfirm>
-        </a-col>
-      </a-row>
+        </a-form-model-item>
+        <a-row>
+          <a-col :span="3" :offset="10" style="margin-top: 16px;display: flex;justify-content: space-between;">
+            <a-popconfirm
+              title="是否确认驳回？"
+              @confirm="review(false)"
+            >
+              <a-button type="danger">驳回</a-button>
+            </a-popconfirm>
+            <a-button @click="review(true)">通过</a-button>
+          </a-col>
+        </a-row>
+      </a-form-model>
     </a-tab-pane>
     <a-tab-pane key="2" tab="日志" v-if="$auth('customer:serviceApply:audit')">
       <vxe-grid
@@ -102,7 +105,7 @@ export default {
       loading: false,
       activeKey: undefined,
       logList: [],
-      form: this.$form.createForm(this)
+      form: {}
     }
   },
   computed: {
@@ -153,10 +156,10 @@ export default {
       if (v === '2') this.getAuditLog()
     },
     review (flag) {
-      this.form.validateFields((err, val) => {
-        if (!err) {
+      this.$refs.form.validate(valid => {
+        if (valid) {
           const params = {
-            ...val,
+            ...this.form,
             status: flag ? 1 : 2,
             instanceId: this[this.detail].instanceId
           }
@@ -166,7 +169,7 @@ export default {
               this.$message.success('审核成功')
               this.$store.commit(`${this.storeName}/CHANGE_PERMISSION`, false)
               this.activeKey = '2'
-              this.form.resetFields()
+              this.$refs.form.resetFields()
               this.$emit('refresh')
             } else {
               this.$message.error(errorMessage || '审核失败')

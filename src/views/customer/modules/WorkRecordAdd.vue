@@ -14,7 +14,13 @@
         </a-col>
         <a-col :span="12">
           <a-form-model-item label="关联单号" prop="serviceNo">
-            <a-popover>
+            <a-popover
+              :autoAdjustOverflow="false"
+              placement="bottom"
+              destroyTooltipOnHide
+              arrowPointAtCenter
+              trigger="click"
+            >
               <template slot="content">
                 <ystable
                   ref="pTable"
@@ -25,9 +31,9 @@
                   show-overflow="title"
                   @cell-click="clickRow"
                 >
-                  <vxe-table-column field="serviceNo" title="服务单号" minWidth="140"/>
-                  <vxe-table-column field="ownerName" title="业务员" width="100"/>
-                  <vxe-table-column field="deptName" title="所属部门" width="100"/>
+                  <vxe-table-column field="serviceNo" title="服务单号" minWidth="60"/>
+                  <vxe-table-column field="ownerName" title="申请人" width="100"/>
+                  <vxe-table-column field="date" title="预计起止日期"/>
                 </ystable>
               </template>
               <a-input
@@ -65,25 +71,15 @@
 
       <a-divider/>
 
-      <vxe-grid
-        ref="xTable"
-        resizable
-        stripe
-        show-footer
-        keep-source
-        :data="list"
-        :footer-method="footerMethod"
-        :max-height="400"
-        :edit-config="{ trigger: 'manual', mode: 'row', autoClear: false }"
-        :edit-rules="validRules"
-      >
-        <vxe-table-column type="seq" width="60" fixed="left" title="序号"/>
+      <ServiceEditTable ref="ServiceEditTable" :valid-rules="validRules" :footerMethod="footerMethod">
         <vxe-table-column field="itemType" title="事项" width="160" :edit-render="{ immediate: true }">
           <template v-slot="{ row }">
-            <div>{{ type2value(row.itemType) }}</div>
-          </template>
-          <template v-slot:edit="{ row }">
-            <a-select v-model="row.itemType" style="width: 100%;" placeholder="请选择事项">
+            <a-select
+              allowClear
+              v-model="row.itemType"
+              style="width: 100%;"
+              placeholder="请选择事项"
+            >
               <a-select-option v-for="item in dictionary" :key="item.key">
                 {{ item.value }}
               </a-select-option>
@@ -93,69 +89,36 @@
         <vxe-table-column
           field="date"
           title="起止时间"
-          width="200"
           align="center"
+          width="440"
           :edit-render="{ immediate: true }"
         >
-          <template v-slot:edit="{ row }">
-            <a-range-picker style="width: 100%;" @change="changeRangeDate"/>
+          <template v-slot="{ row }">
+            <DateRange show-time @onChange="(d, s) => changeRangeDate(row, d, s)"/>
           </template>
         </vxe-table-column>
-        <vxe-table-column field="amount" title="费用" align="right" width="200" :edit-render="{ immediate: true }">
-          <template v-slot:edit="{ row }">
+        <vxe-table-column field="amount" title="费用" align="right" width="150" :edit-render="{ immediate: true }">
+          <template v-slot="{ row }">
             <a-input-number
               :min="0"
               :step="0.01"
               v-model="row.amount"
               placeholder="请输入费用金额"
               style="width: 100%;"
-              @change="$refs.xTable.updateFooter()"/>
+              @change="$refs.ServiceEditTable.$refs.xTable.updateFooter()"/>
           </template>
         </vxe-table-column>
-        <vxe-table-column field="remark" title="备注" minWidth="200" :edit-render="{ immediate: true }">
-          <template v-slot:edit="{ row }">
+        <vxe-table-column field="remark" title="备注" width="200" :edit-render="{ immediate: true }">
+          <template v-slot="{ row }">
             <a-textarea
+              placeholder="请输入"
               style="width: 100%;"
               v-model="row.remark"
               :auto-size="{ minRows: 1, maxRows: 3 }"
             />
           </template>
         </vxe-table-column>
-        <vxe-table-column title="操作" width="100" align="center" v-if="editCus">
-          <template v-slot="{ row, rowIndex }">
-            <template v-if="$refs.xTable.isActiveByRow(row)">
-              <a style="margin-right: 10px;" @click="saveRowEvent">保存</a>
-              <a-popconfirm
-                :autoAdjustOverflow="false"
-                placement="left"
-                title="是否取消添加?"
-                @confirm="cancelRowEvent"
-              >
-                <a>取消</a>
-              </a-popconfirm>
-            </template>
-            <template v-else>
-              <a-popconfirm
-                placement="left"
-                title="是否删除该记录?"
-                @confirm="delTableRow(rowIndex)"
-              >
-                <a>删除</a>
-              </a-popconfirm>
-            </template>
-          </template>
-        </vxe-table-column>
-      </vxe-grid>
-      <a-button
-        :disabled="editCus"
-        type="dashed"
-        block
-        icon="plus"
-        style="margin-top: 12px;"
-        @click="insertEvent"
-      >
-        添加
-      </a-button>
+      </ServiceEditTable>
     </a-form-model>
 
     <div
@@ -165,7 +128,7 @@
         bottom: 0,
         width: '100%',
         borderTop: '1px solid #e9e9e9',
-        padding: '10px 16px',
+        padding: '20px 20px',
         background: '#fff',
         textAlign: 'right',
         zIndex: 1,
@@ -173,20 +136,18 @@
     >
       <a-button
         :style="{ marginRight: '8px' }"
-        :disabled="editCus || !form.customerId || !form.ownerId || list.length === 0"
         @click="handleSaveForm('/serviceRecord/addServiceRecord')"
       >
         暂存
       </a-button>
       <a-popconfirm
         :autoAdjustOverflow="false"
-        placement="left"
         title="是否确认提交?"
-        :disabled="editCus || !form.customerId || !form.ownerId || list.length === 0"
+        placement="topRight"
         @confirm="handleSaveForm('/serviceRecord/submit')"
 
       >
-        <a-button type="primary" :disabled="editCus || !form.customerId || !form.ownerId || list.length === 0">
+        <a-button type="primary">
           提交
         </a-button>
       </a-popconfirm>
@@ -199,10 +160,12 @@ import ystable from '@/components/Table/ystable'
 import SelectCompany from '@/components/Selects/SelectCompany'
 import DeptSelect from '@/components/Selects/DeptSelect'
 import SearchSelect from '@/components/Selects/SearchSelect'
+import ServiceEditTable from '@/views/customer/modules/ServiceEditTable'
+import DateRange from '@/components/DateRange/DateRange'
 
 export default {
   name: 'WorkRecordAdd',
-  components: { SearchSelect, DeptSelect, SelectCompany, ystable },
+  components: { DateRange, ServiceEditTable, SearchSelect, DeptSelect, SelectCompany, ystable },
   props: {
     dictionary: {
       type: Array,
@@ -214,7 +177,6 @@ export default {
       visible: false,
       editCus: false,
       form: {},
-      list: [],
       serviceNoList: [],
       owner: {},
       validRules: {
@@ -239,7 +201,7 @@ export default {
       }
     },
     'form.customerId' (n, o) {
-      if (n !== o) this.$refs.pTable.refresh(true)
+      if (n !== o) this.$refs.pTable && this.$refs.pTable.refresh(true)
     }
   },
   methods: {
@@ -249,32 +211,10 @@ export default {
     close () {
       Object.assign(this.$data, this.$options.data())
     },
-    changeRangeDate (dates, dateStr) {
-      this.list[0].begin = dateStr[0]
-      this.list[0].end = dateStr[1]
-      this.list[0].date = `${dateStr[0]} - ${dateStr[1]}`
-    },
-    async insertEvent () {
-      this.editCus = true
-      const record = {}
-      this.list.unshift(record)
-      await this.$refs.xTable.setActiveRow(record)
-    },
-    async saveRowEvent () {
-      const errMap = await this.$refs.xTable.validate().catch(errMap => errMap)
-      if (!errMap) {
-        this.editCus = false
-        await this.$refs.xTable.clearActived()
-      }
-    },
-    cancelRowEvent () {
-      this.$refs.xTable.clearActived().then(() => {
-        this.list.shift()
-        this.editCus = false
-      })
-    },
-    delTableRow (index) {
-      this.list.splice(index, 1)
+    changeRangeDate (row, dates, dateStr) {
+      row.begin = dateStr[0]
+      row.end = dateStr[1]
+      row.date = `${dateStr[0]}-${dateStr[1]}`
     },
     footerMethod ({ columns, data }) {
       return [columns.map((col, _colI) => {
@@ -324,13 +264,23 @@ export default {
       return result
     },
     handleSaveForm (url) {
+      if (!this.form.customerId) {
+        this.$message.error('请选择客户名称')
+        return
+      }
+      if (!this.form.ownerId) {
+        this.$message.error('请选择业务员')
+        return
+      }
+      const [flag, list] = this.$refs.ServiceEditTable.validAllEvent()
+      if (!flag) return
       const params = {
         ...this.form,
-        list: this.list
+        list
       }
       this.$http.post(url, params).then(({ success, errorMessage }) => {
         if (success) {
-          this.$message.success('暂存成功')
+          this.$message.success('操作成功')
           this.close()
           this.$emit('refresh')
         } else {

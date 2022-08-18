@@ -1,19 +1,26 @@
 <template>
-  <div>
+  <div class="rang-box">
     <a-date-picker
+      :defaultValue="defaultValue[0]"
       v-model="v0"
       :disabled="disabled"
+      :show-time="showTime"
+      :format="showTime? 'YYYY-MM-DD HH:mm' : 'YYYY-MM-DD'"
       @change="(v,s)=>onChange(v,s,0)"
       :disabledDate="disBeginDate"
-      style="width:47%;"
+      style="flex: 1;"
       placeholder="请选择开始日期"
-    />~
+    />
+    <span>~</span>
     <a-date-picker
+      :defaultValue="defaultValue[1]"
       v-model="v1"
       :disabled="disabled"
+      :show-time="showTime"
+      :format="showTime? 'YYYY-MM-DD HH:mm' : 'YYYY-MM-DD'"
       @change="(v,s)=>onChange(v,s,1)"
       :disabledDate="disEndDate"
-      style="width:48%;"
+      style="flex: 1;"
       placeholder="请选择结束日期"
     />
   </div>
@@ -24,6 +31,14 @@ export default {
   name: 'DateRange',
   props: {
     disabled: {
+      type: Boolean,
+      default: false
+    },
+    defaultValue: {
+      type: Array,
+      default: () => [null, null]
+    },
+    showTime: {
       type: Boolean,
       default: false
     }
@@ -72,5 +87,9 @@ export default {
 }
 </script>
 
-<style>
+<style lang="less" scoped>
+.rang-box {
+  display: flex;
+  align-items: center;
+}
 </style>

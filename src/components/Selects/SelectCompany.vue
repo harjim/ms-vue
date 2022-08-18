@@ -4,6 +4,7 @@
     allowClear
     optionLabelProp="value"
     :placeholder="placeholder"
+    :defaultValue="defaultValue"
     @select="onSelect"
     @search="debounceSearch"
   >
@@ -35,6 +36,10 @@ export default {
     url: {
       type: String,
       default: '/serviceApply/getCustomerList'
+    },
+    defaultValue: {
+      type: String,
+      default: ''
     }
   },
   data () {
@@ -51,7 +56,7 @@ export default {
     },
     debounceSearch (searchText) {
       if (!searchText) {
-        this.$emit('changeCompany', '')
+        this.$emit('changeCompany', '', { key: '' })
         return
       }
       this.getCustomerList(searchText)

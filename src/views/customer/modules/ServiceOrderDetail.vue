@@ -2,8 +2,8 @@
   <a-drawer
     destroyOnClose
     :visible="visible"
-    :title="editing ? '编辑服务单' : '服务单详情'"
-    :width="960"
+    :title="`${getIsEditStatus ? '编辑服务单' : '服务单详情'}-${currentOrder.serviceNo}`"
+    :width="1184"
     :drawerStyle="{ height: '100vh' }"
     :bodyStyle="{ overflowY: 'hidden' }"
     @close="close"
@@ -11,8 +11,7 @@
     <tab-layout>
       <template #up>
         <div style="height: 100%">
-          <h2>服务单号:{{ currentOrder.serviceNo }}</h2>
-          <ServiceOrderDetailCheck/>
+          <ServiceOrderDetailCheck ref="ServiceOrderDetailCheck"/>
         </div>
       </template>
       <template #down>
@@ -25,42 +24,32 @@
     </tab-layout>
 
     <div
+      v-if="getIsEditStatus"
       :style="{
         position: 'absolute',
         right: 0,
         bottom: 0,
         width: '100%',
         borderTop: '1px solid #e9e9e9',
-        padding: '10px 16px',
+        padding: '20px 20px',
         background: '#fff',
         textAlign: 'right',
-        zIndex: 1,
+        zIndex: 999,
       }"
     >
       <a-button
         :style="{ marginRight: '8px' }"
-        :disabled="!getIsEditStatus"
-        v-if="!editing"
-        @click="onEdit"
-      >
-        编辑
-      </a-button>
-      <a-button
-        v-else
-        :style="{ marginRight: '8px' }"
-        :disabled="tableEdit"
         @click="handleSaveForm('/serviceApply/editServiceApply')"
       >
         暂存
       </a-button>
       <a-popconfirm
         title="是否确认提交?"
-        @confirm="handleSaveForm('/serviceApply/submit')"
-        placement="left"
         :autoAdjustOverflow="false"
-        :disabled="!getIsEditStatus || tableEdit"
+        placement="topRight"
+        @confirm="handleSaveForm('/serviceApply/submit')"
       >
-        <a-button type="primary" :disabled="!getIsEditStatus || tableEdit">
+        <a-button type="primary">
           提交
         </a-button>
       </a-popconfirm>
@@ -89,9 +78,7 @@ export default {
   },
   computed: {
     ...mapState({
-      currentOrder: state => state.service.currentOrder,
-      editing: state => state.service.editing,
-      tableEdit: state => state.service.tableEdit
+      currentOrder: state => state.service.currentOrder
     }),
     ...mapGetters('service', ['getIsEditStatus'])
   },
@@ -107,14 +94,19 @@ export default {
       })
       this.visible = false
     },
-    // 进入编辑状态
-    onEdit () {
-      this.$store.commit('service/TEMPORARILY', true)
-    },
     handleSaveForm (url) {
-      this.$store.commit('service/TEMPORARILY', false)
+      if (!this.currentOrder.techList.length && !this.currentOrder.finaList.length) {
+        this.$message.error('技术人员与财务人员至少选择一个')
+        return
+      }
+      if (!this.currentOrder.begin || !this.currentOrder.end) {
+        this.$message.error('请选择预计起止日期')
+        return
+      }
+      const [flag, customerList] = this.$refs.ServiceOrderDetailCheck.$refs.ServiceEditTable.validAllEvent()
+      if (!flag) return
       this.$nextTick(() => {
-        this.$http.post(url, this.currentOrder).then(({ success, data, errorMessage }) => {
+        this.$http.post(url, { ...this.currentOrder, customerList }).then(({ success, errorMessage }) => {
           if (success) {
             this.$message.success('操作成功')
             this.close()
@@ -163,7 +155,12 @@ export default {
   .down {
     overflow: auto;
     flex: 1;
-    min-height: 300px;
+    height: 320px;
+    min-height: 260px;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
 
     & /deep/ .ant-tabs-tabpane {
       overflow: auto;

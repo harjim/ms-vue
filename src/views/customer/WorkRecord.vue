@@ -3,7 +3,10 @@
     <template v-if="$auth('customer:workRecord:search')">
       <a-form-model layout="inline" ref="form" :model="form">
         <a-form-model-item label="客户名称">
-          <select-company style="width: 190px;" prop="companyName" @changeCompany="v => form.companyName = v"/>
+          <select-company style="width: 240px;" prop="companyName" @changeCompany="v => form.companyName = v"/>
+        </a-form-model-item>
+        <a-form-model-item label="单号">
+          <a-input v-model="form.serviceNo" placeholder="请输入单号" style="width: 240px;"/>
         </a-form-model-item>
         <a-form-model-item label="创建人">
           <search-select
@@ -11,13 +14,13 @@
             searchField="realName"
             sTitle="realName"
             placeholder="请输入创建人"
-            style="width:190px;"
+            style="width:240px;"
             v-model="temp.creatorName"
             @change="v => form.creatorName = v.realName"
           />
         </a-form-model-item>
         <a-form-model-item label="流程状态">
-          <a-select v-model="form.status" placeholder="请输入流程状态" style="width: 190px;">
+          <a-select v-model="form.status" placeholder="请输入流程状态" style="width: 240px;">
             <a-select-option v-for="(v, k) in statusMap" :key="k" :value="k">{{ v }}</a-select-option>
           </a-select>
         </a-form-model-item>
@@ -27,7 +30,7 @@
             searchField="realName"
             sTitle="realName"
             placeholder="请输入当前处理人"
-            style="width:190px;"
+            style="width:240px;"
             v-model="temp.auditUsers"
             @change="v => form.auditUsers = v.realName"
           />
@@ -96,8 +99,10 @@
               :autoAdjustOverflow="false"
               placement="bottom"
               destroyTooltipOnHide
+              arrowPointAtCenter
+              trigger="click"
             >
-              <div>{{ row.list.length }}</div>
+              <a>{{ row.list.length }}</a>
               <template slot="content">
                 <vxe-grid
                   auto-resize
@@ -137,7 +142,7 @@
           width="120"
         >
           <template v-slot="{ row }">
-            <a-badge :color="statusColor[row.status]" :text="getStatusName(row.status)"/>
+            <a-badge :color="statusColor[row.status === null ? 5 : row.status]" :text="getStatusName(row.status)"/>
           </template>
         </vxe-table-column>
         <vxe-table-column

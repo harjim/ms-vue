@@ -16,24 +16,30 @@
               {{ order.companyName }}
             </a-descriptions-item>
             <a-descriptions-item label="关联单号">
-              <template v-if="!editing">
-                {{ order.serviceNo }}
+              <template v-if="!getIsEditStatus">
+                <a>{{ order.serviceNo }}</a>
               </template>
               <template v-else>
-                <a-popover>
+                <a-popover
+                  :autoAdjustOverflow="false"
+                  placement="bottom"
+                  destroyTooltipOnHide
+                  arrowPointAtCenter
+                  trigger="click"
+                >
                   <template slot="content">
                     <ystable
                       ref="pTable"
                       query-url="/serviceRecord/getServiceNo"
-                      :params="order"
+                      :params="{customerId: order.customerId}"
                       size="mini"
                       :max-height="200"
                       show-overflow="title"
                       @cell-click="clickRow"
                     >
                       <vxe-table-column field="serviceNo" title="服务单号" minWidth="140"/>
-                      <vxe-table-column field="ownerName" title="业务员" width="100"/>
-                      <vxe-table-column field="deptName" title="所属部门" width="100"/>
+                      <vxe-table-column field="ownerName" title="申请人" width="100"/>
+                      <vxe-table-column field="date" title="预计起止日期" width="100"/>
                     </ystable>
                   </template>
                   <a-input
@@ -47,7 +53,7 @@
               </template>
             </a-descriptions-item>
             <a-descriptions-item label="业务员">
-              <template v-if="!editing">
+              <template v-if="!getIsEditStatus">
                 {{ order.ownerName }}
               </template>
               <template v-else>
@@ -63,7 +69,7 @@
               </template>
             </a-descriptions-item>
             <a-descriptions-item label="所属部门">
-              <template v-if="!editing">
+              <template v-if="!getIsEditStatus">
                 {{ order.deptName }}
               </template>
               <template v-else>
@@ -77,106 +83,93 @@
               {{ order.createTime }}
             </a-descriptions-item>
           </a-descriptions>
-          <div style="position: absolute;top: 0;right: 0;" v-if="!editing">
+          <div style="position: absolute;top: 0;right: 0;" v-if="!getIsEditStatus">
             <div style="color: rgba(0, 0, 0, .4);text-align: right;">流程状态</div>
             <div style="font-size: 24px;" :style="{ color: getStatusColor }">{{ getStatusTitle }}
             </div>
           </div>
         </div>
-        <vxe-grid
-          ref="xTable"
-          resizable
-          stripe
-          show-footer
-          keep-source
-          size="small"
-          :data="order.list"
-          :max-height="400"
-          :footer-method="footerMethod"
-          show-overflow="title"
-          :edit-config="{ trigger: 'manual', mode: 'row', autoClear: false }"
-          :edit-rules="validRules"
+
+        <ServiceEditTable
+          ref="ServiceEditTable"
+          :custom-list="order.list"
+          :valid-rules="validRules"
+          :edit="getIsEditStatus"
+          :footerMethod="footerMethod"
         >
-          <vxe-table-column type="seq" width="60" fixed="left" title="序号"/>
           <vxe-table-column field="itemType" title="事项" width="160" :edit-render="{ immediate: true }">
             <template v-slot="{ row }">
-              <div>{{ type2value(row.itemType) }}</div>
-            </template>
-            <template v-slot:edit="{ row }">
-              <a-select v-model="row.itemType" style="width: 100%;" placeholder="请选择事项">
-                <a-select-option v-for="item in dictionary" :key="item.key">
-                  {{ item.value }}
-                </a-select-option>
-              </a-select>
+              <template v-if="!getIsEditStatus">
+                <span>{{ type2value(row.itemType) }}</span>
+              </template>
+              <template v-else>
+                <a-select
+                  allowClear
+                  v-model="row.itemType"
+                  style="width: 100%;"
+                  placeholder="请选择事项"
+                >
+                  <a-select-option v-for="item in dictionary" :key="item.key">
+                    {{ item.value }}
+                  </a-select-option>
+                </a-select>
+              </template>
             </template>
           </vxe-table-column>
           <vxe-table-column
             field="date"
             title="起止时间"
-            width="180"
             align="center"
+            width="440"
             :edit-render="{ immediate: true }"
           >
-            <template v-slot:edit="{ row }">
-              <a-range-picker style="width: 100%;" @change="changeRangeDate"/>
-            </template>
-          </vxe-table-column>
-          <vxe-table-column field="amount" title="费用" align="right" width="180" :edit-render="{ immediate: true }">
-            <template v-slot:edit="{ row }">
-              <a-input-number
-                :min="0"
-                :step="0.01"
-                v-model="row.amount"
-                placeholder="请输入费用金额"
-                style="width: 100%;"
-                @change="$refs.xTable.updateFooter()"/>
-            </template>
-          </vxe-table-column>
-          <vxe-table-column field="remark" title="备注" minWidth="180" :edit-render="{ immediate: true }">
-            <template v-slot:edit="{ row }">
-              <a-textarea
-                style="width: 100%;"
-                v-model="row.remark"
-                :auto-size="{ minRows: 1, maxRows: 5 }"
-              />
-            </template>
-          </vxe-table-column>
-          <vxe-table-column title="操作" minWidth="100" align="center" v-if="editing">
-            <template v-slot="{ row, rowIndex }">
-              <template v-if="$refs.xTable.isActiveByRow(row)">
-                <a style="margin-right: 10px;" @click="validAllAndSave">保存</a>
-                <a-popconfirm
-                  :autoAdjustOverflow="false"
-                  placement="left"
-                  title="是否取消添加?"
-                  @confirm="cancelRowEvent"
-                >
-                  <a>取消</a>
-                </a-popconfirm>
+            <template v-slot="{ row }">
+              <template v-if="!getIsEditStatus">
+                <span>{{ row.date }}</span>
               </template>
               <template v-else>
-                <a-popconfirm
-                  placement="left"
-                  title="是否删除该记录?"
-                  @confirm="delTableRow(row, rowIndex)"
-                >
-                  <a>删除</a>
-                </a-popconfirm>
+                <DateRange
+                  show-time
+                  :default-value="[row.begin ? moment(row.begin) : null, row.end ? moment(row.end) : null]"
+                  @onChange="(d, s) => changeRangeDate(row, d, s)"
+                />
               </template>
             </template>
           </vxe-table-column>
-        </vxe-grid>
-        <a-button
-          v-if="editing"
-          type="dashed"
-          block
-          icon="plus"
-          style="margin-top: 12px;"
-          @click="insertEvent"
-          :disabled="tableEdit"
-        >
-          添加
-        </a-button>
+          <vxe-table-column field="amount" title="费用" align="right" width="150" :edit-render="{ immediate: true }">
+            <template v-slot="{ row }">
+              <template v-if="!getIsEditStatus">
+                <span>{{ row.amount }}</span>
+              </template>
+              <template v-else>
+                <a-input-number
+                  :min="0"
+                  :step="0.01"
+                  v-model="row.amount"
+                  placeholder="请输入费用金额"
+                  style="width: 100%;"
+                  @change="$refs.ServiceEditTable.$refs.xTable.updateFooter()"
+                />
+              </template>
+            </template>
+          </vxe-table-column>
+          <vxe-table-column field="remark" title="备注" width="200" :edit-render="{ immediate: true }">
+            <template v-slot="{ row }">
+              <template v-if="!getIsEditStatus">
+                <span v-if="row.remark" v-html="row.remark.replace(/\n/g, '<br/>')"></span>
+                <span v-else>-</span>
+              </template>
+              <template v-else>
+                <a-textarea
+                  placeholder="请输入"
+                  style="width: 100%;"
+                  v-model="row.remark"
+                  :auto-size="{ minRows: 1, maxRows: 3 }"
+                />
+              </template>
+            </template>
+          </vxe-table-column>
+        </ServiceEditTable>
       </template>
       <template #down>
         <template v-if="$auth('customer:serviceApply:review') || $auth('customer:serviceApply:audit')">
@@ -186,6 +179,7 @@
     </tab-layout>
 
     <div
+      v-if="getIsEditStatus"
       :style="{
         position: 'absolute',
         right: 0,
@@ -200,25 +194,14 @@
     >
       <a-button
         :style="{ marginRight: '8px' }"
-        :disabled="!getIsEditStatus"
-        v-if="!editing"
-        @click="onEdit"
-      >
-        编辑
-      </a-button>
-      <a-button
-        v-else
-        :style="{ marginRight: '8px' }"
-        :disabled="tableEdit || order.list.length === 0"
         @click="handleSaveForm('/serviceRecord/editServiceRecord')"
       >
         暂存
       </a-button>
       <a-popconfirm
         title="是否确认提交?"
-        placement="left"
+        placement="topRight"
         :autoAdjustOverflow="false"
-        :disabled="!getIsEditStatus || tableEdit"
         @confirm="handleSaveForm('/serviceRecord/submit')"
       >
         <a-button type="primary" :disabled="!getIsEditStatus || tableEdit || order.list.length === 0">
@@ -235,10 +218,13 @@ import { mapGetters, mapState } from 'vuex'
 import ServiceOrderDetailAudit from '@/views/customer/modules/ServiceOrderDetailAudit'
 import TabLayout from '@/views/customer/modules/AuditProgress/modules/TabLayout'
 import SearchSelect from '@/components/Selects/SearchSelect'
+import ServiceEditTable from '@/views/customer/modules/ServiceEditTable'
+import DateRange from '@/components/DateRange/DateRange'
+import moment from 'moment'
 
 export default {
   name: 'WorkRecordCheck',
-  components: { SearchSelect, TabLayout, ServiceOrderDetailAudit, ystable },
+  components: { DateRange, ServiceEditTable, SearchSelect, TabLayout, ServiceOrderDetailAudit, ystable },
   props: {
     dictionary: {
       type: Array,
@@ -273,6 +259,7 @@ export default {
     }
   },
   methods: {
+    moment,
     open () {
       this.owner = {
         id: this.order.ownerId,
@@ -285,6 +272,7 @@ export default {
     close () {
       Object.assign(this.$data, this.$options.data())
       this.$store.commit('workRecord/SET_ORDER', {})
+      this.$emit('refresh')
     },
     footerMethod ({ columns, data }) {
       return [columns.map((col, _colI) => {
@@ -299,32 +287,6 @@ export default {
         }
         return ''
       })]
-    },
-    onEdit () {
-      this.$store.commit('workRecord/SET_EDITING', true)
-    },
-    async insertEvent () {
-      const record = {}
-      await this.$store.commit('workRecord/ADD_ITEM', record)
-      await this.$refs.xTable.setActiveRow(record)
-      this.tableEdit = true
-    },
-    delTableRow (row, index) {
-      this.$store.commit('workRecord/DEL_ITEM', index)
-      this.$refs.xTable.remove(row)
-    },
-    cancelRowEvent () {
-      this.$refs.xTable.clearActived().then(() => {
-        this.tableEdit = false
-        this.$store.commit('workRecord/DEL_ITEM')
-      })
-    },
-    async validAllAndSave () {
-      const errMap = await this.$refs.xTable.validate().catch(errMap => errMap)
-      if (!errMap) {
-        this.tableEdit = false
-        await this.$refs.xTable.clearActived()
-      }
     },
     type2value (key) {
       let result = '-'
@@ -369,17 +331,31 @@ export default {
         }
       }
     },
-    changeRangeDate (dates, dateStr) {
-      this.$store.commit('workRecord/CHANGE_DATE', dateStr)
+    changeRangeDate (row, dates, dateStr) {
+      row.begin = dateStr[0]
+      row.end = dateStr[1]
+      row.date = `${dateStr[0]}-${dateStr[1]}`
     },
     handleSaveForm (url) {
-      this.$store.commit('workRecord/SET_EDITING', false)
+      if (!this.order.customerId) {
+        this.$message.error('请选择客户名称')
+        return
+      }
+      if (!this.order.ownerId) {
+        this.$message.error('请选择业务员')
+        return
+      }
+      const [flag, list] = this.$refs.ServiceEditTable.validAllEvent()
+      if (!flag) return
+      const params = {
+        ...this.order,
+        list
+      }
       this.$nextTick(() => {
-        this.$http.post(url, this.order).then(({ success, errorMessage }) => {
+        this.$http.post(url, params).then(({ success, errorMessage }) => {
           if (success) {
             this.$message.success('操作成功')
             this.close()
-            this.$emit('refresh')
           } else {
             this.$message.error(errorMessage)
           }
@@ -440,7 +416,8 @@ export default {
   .down {
     overflow: auto;
     flex: 1;
-    min-height: 300px;
+    height: 320px;
+    min-height: 260px;
 
     & /deep/ .ant-tabs-tabpane {
       overflow: auto;

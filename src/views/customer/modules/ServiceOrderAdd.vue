@@ -1,5 +1,5 @@
 <template>
-  <a-drawer :visible="visible" destroyOnClose title="添加服务申请" :width="960" @close="close">
+  <a-drawer :visible="visible" destroyOnClose title="添加服务申请" :width="1184" @close="close">
     <a-form-model ref="form" :model="form" :label-col="{ span: 6 }">
       <a-row>
         <a-col :span="12">
@@ -80,99 +80,51 @@
         </a-col>
         <a-col :span="12">
           <a-form-model-item label="预计起止日期" required>
-            <a-range-picker
-              style="width:300px;"
-              @change="changeRangeDate"
-            />
+            <date-range style="width: 300px;" @onChange="changeDateRange"/>
           </a-form-model-item>
         </a-col>
       </a-row>
 
-      <div style="margin-top: 32px;margin-bottom: 32px;">
-        <vxe-grid
-          ref="xTable"
-          resizable
-          stripe
-          keep-source
-          size="small"
-          :data="customerList"
-          :max-height="400"
-          show-overflow="title"
-          :edit-config="{ trigger: 'manual', mode: 'row', autoClear: false }"
-          :edit-rules="validRules"
+      <ServiceEditTable ref="ServiceEditTable" :valid-rules="validRules">
+        <vxe-table-column
+          field="companyName"
+          title="公司"
+          minWidth="200"
+          :edit-render="{ immediate: true }"
         >
-          <vxe-table-column type="seq" width="60" fixed="left" title="序号"/>
-          <vxe-table-column
-            field="companyName"
-            title="公司"
-            minWidth="200"
-            :edit-render="{ immediate: true }"
-          >
-            <template v-slot:edit="{ row }">
-              <select-company
-                style="width: 100%"
-                prop="companyName"
-                @changeCompany="(data, option) => {
-                  row.companyName = data
-                  row.customerId = option.key
-                }"
-              />
-            </template>
-          </vxe-table-column>
-          <vxe-table-column
-            field="causes"
-            title="事由"
-            minWidth="200"
-            :edit-render="{ immediate: true }"
-          >
-            <template v-slot:edit="{ row }">
-              <a-textarea
-                style="width: 100%;"
-                v-model="row.causes"
-                :auto-size="{ minRows: 1, maxRows: 5 }"
-              />
-            </template>
-          </vxe-table-column>
-          <vxe-table-column title="操作" minWidth="60" align="center">
-            <template v-slot="{ row, rowIndex }">
-              <template v-if="$refs.xTable.isActiveByRow(row)">
-                <a style="margin-right: 10px;" @click="validAllAndSave">保存</a>
-                <a-popconfirm
-                  title="是否取消添加?"
-                  @confirm="cancelRowEvent"
-                >
-                  <a>取消</a>
-                </a-popconfirm>
-              </template>
-              <template v-else>
-                <a-popconfirm
-                  title="是否删除该记录?"
-                  @confirm="delTableRow(rowIndex)"
-                >
-                  <a>删除</a>
-                </a-popconfirm>
-              </template>
-            </template>
-          </vxe-table-column>
-        </vxe-grid>
-        <a-button
-          :disabled="editCus"
-          type="dashed"
-          block
-          icon="plus"
-          style="margin-top: 6px;"
-          @click="insertEvent"
+          <template v-slot="{ row }">
+            <select-company
+              style="width: 100%"
+              prop="companyName"
+              @changeCompany="(data, option) => {
+                row.companyName = data
+                row.customerId = option.key
+              }"
+            />
+          </template>
+        </vxe-table-column>
+        <vxe-table-column
+          field="causes"
+          title="事由"
+          minWidth="200"
+          :edit-render="{ immediate: true }"
         >
-          添加
-        </a-button>
-      </div>
+          <template v-slot="{ row }">
+            <a-textarea
+              style="width: 100%;"
+              v-model="row.causes"
+              :auto-size="{ minRows: 1, maxRows: 5 }"
+            />
+          </template>
+        </vxe-table-column>
+      </ServiceEditTable>
 
-      <a-form-model-item label="备注" :label-col="{ span: 1 }">
+      <a-form-model-item label="备注" :label-col="{ span: 2 }">
         <a-textarea
-          style="width: 874px;"
+          style="width: 1040px;margin-top: 8px;"
           placeholder="请输入"
           v-model="form.remark"
-          :auto-size="{ minRows: 2, maxRows: 5 }"
+          :auto-size="{ minRows: 4, maxRows: 6 }"
         />
       </a-form-model-item>
     </a-form-model>
@@ -184,7 +136,7 @@
         bottom: 0,
         width: '100%',
         borderTop: '1px solid #e9e9e9',
-        padding: '10px 16px',
+        padding: '20px 20px',
         background: '#fff',
         textAlign: 'right',
         zIndex: 1,
@@ -192,22 +144,20 @@
     >
       <a-button
         :style="{ marginRight: '8px' }"
-        :disabled="cantSaveForm"
         @click="handleSaveForm('/serviceApply/addServiceApply')"
       >
         暂存
       </a-button>
-      <a-popconfir
+      <a-popconfirm
         title="是否确认提交?"
-        placement="left"
         :autoAdjustOverflow="false"
-        :disabled="cantSaveForm"
+        placement="topRight"
         @confirm="handleSaveForm('/serviceApply/submit')"
       >
-        <a-button type="primary" :disabled="cantSaveForm">
+        <a-button type="primary">
           提交
         </a-button>
-      </a-popconfir>
+      </a-popconfirm>
     </div>
   </a-drawer>
 </template>
@@ -218,14 +168,15 @@ import SelectMan from '@/components/Selects/SelectMan'
 import moment from 'moment/moment'
 import SelectCompany from '@/components/Selects/SelectCompany'
 import { deepTree } from '@/utils/util'
+import DateRange from '@/components/DateRange/DateRange'
+import ServiceEditTable from '@/views/customer/modules/ServiceEditTable'
 
 export default {
   name: 'ServiceOrderAdd',
-  components: { SelectCompany, SelectMan },
+  components: { ServiceEditTable, DateRange, SelectCompany, SelectMan },
   data () {
     return {
       visible: false,
-      editCus: false,
       deptTitle: '-',
       boss: {
         techManagerName: '-',
@@ -236,16 +187,13 @@ export default {
       form: {},
       customerList: [],
       validRules: {
-        companyName: [{ required: true, message: '公司必须选择', trigger: 'blur' }],
-        causes: [{ required: true, message: '事由必须填写', trigger: 'blur' }]
+        companyName: [{ required: true, message: '公司必须选择' }],
+        causes: [{ required: true, message: '事由必须填写' }]
       }
     }
   },
   computed: {
-    ...mapGetters(['userInfo']),
-    cantSaveForm () {
-      return this.editCus || this.customerList.length === 0 || ((this.form.techList ? this.form.techList.length === 0 : true) && (this.form.finaList ? this.form.finaList.length === 0 : true)) || !this.form.date
-    }
+    ...mapGetters(['userInfo'])
   },
   methods: {
     moment,
@@ -254,24 +202,20 @@ export default {
       this.visible = true
     },
     close () {
-      this.form = {}
-      this.boss = {}
-      this.customerList = []
-      this.editCus = false
-      this.visible = false
+      Object.assign(this.$data, this.$options.data())
     },
     getDeptTitle () {
       if (this.userInfo.deptIds.length > 0) {
         this.$http.get('/dept/tree').then(({ success, data }) => {
           if (success) {
-            this.deptTitle = this.deepTreeTitle(data, this.userInfo.deptIds[0]).title
+            this.deptTitle = this.deepTreeTitle(data, this.userInfo.deptIds[0])
           }
         })
       }
     },
     deepTreeTitle (data, value) {
       const temp = deepTree(data, value)
-      return temp.title || '-'
+      return temp.title
     },
     changeStateUser (k, v) {
       this.form[`${k}List`] = v.map(item => ({
@@ -287,51 +231,39 @@ export default {
       }
       this.$http.get('/serviceApply/getMemberList', { params }).then(({ success, data, errorMessage }) => {
         if (success) {
-          this.boss[`${k}DirectorId`] = data[`${k}DirectorId`]
-          this.boss[`${k}DirectorName`] = data[`${k}DirectorName`]
-          this.boss[`${k}ManagerId`] = data[`${k}ManagerId`]
-          this.boss[`${k}ManagerName`] = data[`${k}ManagerName`]
+          this.boss[`${k}DirectorId`] = data[`${k}DirectorId`] || '-'
+          this.boss[`${k}DirectorName`] = data[`${k}DirectorName`] || '-'
+          this.boss[`${k}ManagerId`] = data[`${k}ManagerId`] || '-'
+          this.boss[`${k}ManagerName`] = data[`${k}ManagerName`] || '-'
         } else {
           this.$message.error(errorMessage)
         }
       })
     },
-    changeRangeDate (dates, dateStr) {
+    changeDateRange (dates, dateStr) {
       this.form.begin = dateStr[0]
       this.form.end = dateStr[1]
-      this.form.date = `${dateStr[0]} - ${dateStr[1]}`
-    },
-    async insertEvent () {
-      this.editCus = true
-      const record = {}
-      this.customerList.unshift(record)
-      await this.$refs.xTable.setActiveRow(record)
-    },
-    async validAllAndSave () {
-      const errMap = await this.$refs.xTable.validate().catch(errMap => errMap)
-      if (!errMap) {
-        this.editCus = false
-        await this.$refs.xTable.clearActived()
-      }
-    },
-    cancelRowEvent () {
-      this.$refs.xTable.clearActived().then(() => {
-        this.customerList.shift()
-        this.editCus = false
-      })
-    },
-    delTableRow (index) {
-      this.customerList.splice(index, 1)
+      this.form.date = `${dateStr[0]}-${dateStr[1]}`
     },
     handleSaveForm (url) {
+      if (!this.form.techList && !this.form.finaList) {
+        this.$message.error('技术人员与财务人员至少选择一个')
+        return
+      }
+      if (!this.form.begin || !this.form.end) {
+        this.$message.error('请选择预计起止日期')
+        return
+      }
+      const [flag, data] = this.$refs.ServiceEditTable.validAllEvent()
+      if (!flag) return
       const params = {
         ...this.boss,
         ...this.form,
-        customerList: this.customerList
+        customerList: data
       }
-      this.$http.post(url, params).then(({ success, data, errorMessage }) => {
+      this.$http.post(url, params).then(({ success, errorMessage }) => {
         if (success) {
-          this.$message.success('暂存成功')
+          this.$message.success('操作成功')
           this.close()
           this.$emit('refresh')
         } else {

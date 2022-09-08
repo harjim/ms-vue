@@ -3,12 +3,12 @@
     :visible="visible"
     destroyOnClose
     title="服务记录详情"
-    :width="960"
+    :width="1184"
     :drawerStyle="{ height: '100vh' }"
     :bodyStyle="{ overflowY: 'hidden' }"
     @close="close"
   >
-    <tab-layout>
+    <tab-layout :class="{ 'not-log': order.instanceId }">
       <template #up>
         <div style="width: 100%;">
           <a-descriptions :column="2">
@@ -17,7 +17,7 @@
             </a-descriptions-item>
             <a-descriptions-item label="关联单号">
               <template v-if="!getIsEditStatus">
-                <a>{{ order.serviceNo }}</a>
+                <a @click="openServiceEdit">{{ order.serviceNo }}</a>
               </template>
               <template v-else>
                 <a-popover
@@ -45,7 +45,7 @@
                   <a-input
                     readOnly
                     v-model="order.serviceNo"
-                    style="width: 200px;"
+                    style="width: 300px;"
                     :disabled="!order.customerId"
                     placeholder="请选择服务单号"
                   />
@@ -58,7 +58,7 @@
               </template>
               <template v-else>
                 <search-select
-                  style="width: 200px;"
+                  style="width: 300px;"
                   url="/user/userForSelect"
                   searchField="realName"
                   sTitle="realName"
@@ -73,7 +73,7 @@
                 {{ order.deptName }}
               </template>
               <template v-else>
-                <a-input v-model="order.deptName" placeholder="请输入所属部门" disabled/>
+                <a-input style="width: 300px;" v-model="order.deptName" placeholder="请输入所属部门" disabled/>
               </template>
             </a-descriptions-item>
             <a-descriptions-item label="创建人">
@@ -145,6 +145,7 @@
                 <a-input-number
                   :min="0"
                   :step="0.01"
+                  :max="$store.state.totalMax"
                   v-model="row.amount"
                   placeholder="请输入费用金额"
                   style="width: 100%;"
@@ -171,7 +172,7 @@
           </vxe-table-column>
         </ServiceEditTable>
       </template>
-      <template #down>
+      <template #down v-if="order.instanceId">
         <template v-if="$auth('customer:serviceApply:review') || $auth('customer:serviceApply:audit')">
           <ServiceOrderDetailAudit @refresh="$emit('refresh')" storeName="workRecord" detail="recordOrder"/>
         </template>
@@ -185,6 +186,7 @@
         right: 0,
         bottom: 0,
         width: '100%',
+        height: '56px',
         borderTop: '1px solid #e9e9e9',
         padding: '10px 16px',
         background: '#fff',
@@ -209,6 +211,8 @@
         </a-button>
       </a-popconfirm>
     </div>
+
+    <RecordCheckServiceDetail ref="RecordCheckServiceDetail" :service-no="order.serviceNo"/>
   </a-drawer>
 </template>
 
@@ -221,10 +225,19 @@ import SearchSelect from '@/components/Selects/SearchSelect'
 import ServiceEditTable from '@/views/customer/modules/ServiceEditTable'
 import DateRange from '@/components/DateRange/DateRange'
 import moment from 'moment'
+import RecordCheckServiceDetail from '@/views/customer/modules/RecordCheckServiceDetail'
 
 export default {
   name: 'WorkRecordCheck',
-  components: { DateRange, ServiceEditTable, SearchSelect, TabLayout, ServiceOrderDetailAudit, ystable },
+  components: {
+    RecordCheckServiceDetail,
+    DateRange,
+    ServiceEditTable,
+    SearchSelect,
+    TabLayout,
+    ServiceOrderDetailAudit,
+    ystable
+  },
   props: {
     dictionary: {
       type: Array,
@@ -235,7 +248,6 @@ export default {
     return {
       visible: false,
       tableEdit: false,
-      serviceNoList: [],
       owner: {},
       validRules: {
         itemType: [{ required: true, message: '事由必须填写', trigger: 'blur' }],
@@ -246,8 +258,7 @@ export default {
   },
   computed: {
     ...mapState({
-      order: state => state.workRecord.recordOrder,
-      editing: state => state.workRecord.editing
+      order: state => state.workRecord.recordOrder
     }),
     ...mapGetters('workRecord', ['getIsEditStatus', 'getStatusColor', 'getStatusTitle'])
   },
@@ -266,13 +277,11 @@ export default {
         realName: this.order.ownerName,
         deptName: this.order.deptName
       }
-      this.getServiceNoList()
       this.visible = true
     },
     close () {
       Object.assign(this.$data, this.$options.data())
       this.$store.commit('workRecord/SET_ORDER', {})
-      this.$emit('refresh')
     },
     footerMethod ({ columns, data }) {
       return [columns.map((col, _colI) => {
@@ -299,26 +308,6 @@ export default {
         })
       }
       return result
-    },
-    getServiceNoList () {
-      this.$http.get('/serviceRecord/getCustomerList', {
-        params: {
-          companyName: this.order.companyName
-        }
-      }).then(({ success, data }) => {
-        if (success) {
-          if (data.list) {
-            const temp = []
-            for (const listKey in data.list) {
-              temp.push({
-                key: data.list[listKey],
-                label: data.list[listKey]
-              })
-            }
-            this.serviceNoList = temp
-          }
-        }
-      })
     },
     clickRow ({ row }) {
       this.$store.commit('workRecord/CHANGE_SERVICE', row)
@@ -356,28 +345,16 @@ export default {
           if (success) {
             this.$message.success('操作成功')
             this.close()
+            this.$emit('refresh', false)
           } else {
             this.$message.error(errorMessage)
           }
         })
       })
+    },
+    openServiceEdit () {
+      this.$refs.RecordCheckServiceDetail.open()
     }
-  },
-  beforeCreate () {
-  },
-  created () {
-  },
-  beforeMount () {
-  },
-  mounted () {
-  },
-  beforeUpdate () {
-  },
-  updated () {
-  },
-  beforeDestroy () {
-  },
-  destroyed () {
   }
 }
 </script>
@@ -387,7 +364,11 @@ export default {
   height: calc(100vh - 64px);
 }
 
-& /deep/ .center_wrap {
+& /deep/ .ant-descriptions-item-content {
+  width: auto;
+}
+
+.not-log /deep/ .center_wrap {
   display: flex;
   flex-direction: column;
   height: calc(100vh - 110px);
@@ -416,8 +397,7 @@ export default {
   .down {
     overflow: auto;
     flex: 1;
-    height: 320px;
-    min-height: 260px;
+    height: 100%;
 
     & /deep/ .ant-tabs-tabpane {
       overflow: auto;

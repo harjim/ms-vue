@@ -5,12 +5,11 @@
     :value="value"
     :placeholder="placeholder"
     :filter-option="false"
-    :not-found-content="fetching ? undefined : null"
+    :not-found-content="null"
     @search="fetchUser"
     @change="handleChange"
     @blur="$emit('blur', keyField, value, type)"
   >
-    <a-spin v-if="fetching" slot="notFoundContent" :delay="300"/>
     <a-select-option v-for="item in dataSource" :key="item.userId">{{ item.userName }}</a-select-option>
   </a-select>
 </template>
@@ -34,14 +33,17 @@ export default {
     placeholder: {
       type: String,
       default: '请输入'
+    },
+    userId: {
+      type: Number,
+      default: null
     }
   },
   data () {
     this.fetchUser = this.debounce(this.fetchUser)
     return {
       value: [],
-      dataSource: [],
-      fetching: false
+      dataSource: []
     }
   },
   mounted () {
@@ -64,11 +66,10 @@ export default {
       this.dataSource = []
       if (!v) return
       const params = {
-        userIds: this.value.map(i => i.key),
+        userIds: this.userId ? [this.userId, ...this.value.map(i => i.key)] : this.value.map(i => i.key),
         userName: v,
         type: this.type
       }
-      this.fetching = true
       this.$http.get('/serviceApply/getMemberList', { params }).then(({
         success,
         data,
@@ -79,15 +80,15 @@ export default {
         } else {
           this.$message.error(errorMessage)
         }
-      }).finally(() => {
-        this.fetching = false
       })
     },
     handleChange (value) {
+      if (value.length === 0) {
+        this.$emit('blur', this.keyField, null, this.type)
+      }
       Object.assign(this, {
         value,
-        data: [],
-        fetching: false
+        data: []
       })
       this.$emit('change', this.keyField, value)
       this.dataSource = []

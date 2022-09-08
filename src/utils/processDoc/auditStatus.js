@@ -56,7 +56,7 @@ const status = {
  * @return { boolean } boolean 可以:true ;不可:false
  */
 function isEditStatus (status) {
-  if (status === null) {
+  if (status === null || status === undefined) {
     status = 5
   }
   return IS_EDIT.includes(status * 1)

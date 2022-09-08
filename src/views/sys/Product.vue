@@ -3,7 +3,7 @@
     <a-card :bordered="false" v-show="!isShowTreeTable">
       <a-form layout="inline">
         <a-form-item label="项目类型">
-          <a-input v-model="queryParam.productName" placeholder="请输入项目类型" />
+          <a-input v-model="queryParam.productName" placeholder="请输入项目类型"/>
         </a-form-item>
         <span class="table-page-search-submitButtons" style="padding-top:5px;">
           <a-button
@@ -29,7 +29,8 @@
             style="margin-right: 10px;"
             @click="$refs.productModal.add()"
             v-if="$auth('sys:product:add')"
-          >添加</a-button>
+          >添加
+          </a-button>
         </template>
         <vxe-table-column
           type="seq"
@@ -69,11 +70,11 @@
         <vxe-table-column title="操作" width="220" align="center" fixed="right">
           <template v-slot="{ row }">
             <a @click="$refs.productModal.edit(row)" v-if="$auth('sys:product:edit')">编辑</a>
-            <a-divider type="vertical" v-if="$auth('sys:product:del')" />
+            <a-divider type="vertical" v-if="$auth('sys:product:del')"/>
             <a-popconfirm title="是否确定删除?" @confirm="handleDel(row)" v-if="$auth('sys:product:del')">
               <a>删除</a>
             </a-popconfirm>
-            <a-divider type="vertical" v-if="(row.productType === 0) && $auth('sys:product:set')" />
+            <a-divider type="vertical" v-if="(row.productType === 0) && $auth('sys:product:set')"/>
             <a
               @click="showTreeTable(row)"
               v-if="(row.productType === 0) && $auth('sys:product:set')"
@@ -156,6 +157,7 @@ import { STable } from '@/components'
 import ProductModal from './modules/ProductModal'
 import EditableCell from './modules/EditableCell'
 import ystable from '@/components/Table/ystable'
+
 const columns = [{
   title: '项目步骤',
   width: 200,
@@ -258,7 +260,7 @@ export default {
       if (type === 'audit') {
         paramObj.status = 2
         paramObj.remake = this.opinion
-        statusMessage = '审核成功！'
+        statusMessage = '操作成功！'
       }
       if (type === 'reject') {
         paramObj.remake = this.opinion
@@ -297,7 +299,11 @@ export default {
     },
     // 模态框确定事件
     handleModelOk () {
-      this.$http.post('/rsProjectStep/addStep', { parentId: this.currrentKey, productId: this.productId, stepName: this.stepName })
+      this.$http.post('/rsProjectStep/addStep', {
+        parentId: this.currrentKey,
+        productId: this.productId,
+        stepName: this.stepName
+      })
         .then(res => {
           this.queryData(this.productId)
           this.modelVisible = false
@@ -354,7 +360,11 @@ export default {
           })
       } else {
         record.stepName = cachestepName
-        this.$http.post('/rsProjectStep/addStep', { parentId: record.parentId, productId: this.productId, stepName: value })
+        this.$http.post('/rsProjectStep/addStep', {
+          parentId: record.parentId,
+          productId: this.productId,
+          stepName: value
+        })
           .then(res => {
             if (res.data) {
               const data = res.data
@@ -407,12 +417,16 @@ export default {
     // 提升排序
     onUp (key, record, dataIndex, value) {
       const newData = this.dsShift(this.treeData, key, 'up')
-      this.treeData = newData.filter((item) => { return true })
+      this.treeData = newData.filter((item) => {
+        return true
+      })
     },
     // 降低排序
     onDown (key, record, dataIndex, value) {
       const newData = this.dsShift(this.treeData, key, 'down')
-      this.treeData = newData.filter((item) => { return true })
+      this.treeData = newData.filter((item) => {
+        return true
+      })
     },
     // 递归删除数据
     dsFilter (dealData, dealKey) {

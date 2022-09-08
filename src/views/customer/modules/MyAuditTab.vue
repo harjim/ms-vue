@@ -52,7 +52,8 @@
           format="YYYY-MM-DD"
           :disabledDate="disabledBeginDate"
           @openChange="handleStartOpenChange"
-        />-
+        />
+        -
         <a-date-picker
           style="width:146px;"
           v-model="queryParams.endDate"
@@ -67,7 +68,8 @@
         <a-button
           type="primary"
           @click="search(true)"
-        >查询</a-button>
+        >查询
+        </a-button>
       </a-form-item>
     </a-form>
     <ystable
@@ -76,6 +78,7 @@
       @completed="()=>selectRowIds=[]"
       @checkbox-change="selectChange"
       @checkbox-all="selectChange"
+      :checkbox-config="{ checkMethod: checkBoxMethod, showHeader: sign!==2 }"
       :params="getParams()"
       :columns="columns"
       queryUrl="/myAudit/getList"
@@ -87,7 +90,14 @@
     >
       <template v-slot:buttons>
         <template v-if="isAudit">
-          <a-button :disabled="selectRowIds.length <=0" @click="$refs.auditConfirm.open(selectRowIds)" type="primary">审核</a-button>
+          <a-button :disabled="selectRowIds.length <=0" @click="$refs.auditConfirm.open(selectRowIds)" type="primary">
+            审核
+          </a-button>
+        </template>
+        <template v-if="isRecall && $auth('customer:myAudit:recall')">
+          <a-button :disabled="selectRowIds.length <=0" @click="$refs.RecallModal.open(selectRowIds)" type="primary">
+            撤回
+          </a-button>
         </template>
       </template>
       <template slot="nodeStatus" slot-scope="{row}">
@@ -95,14 +105,16 @@
       </template>
       <template slot="content" slot-scope="{row}">
         <template v-if="sign != 2">
-          <a @click="onShowMyAuditDrawer(row.content ? row.content : row.modeName,row)"> {{ row.content ? row.content : row.modeName }}</a>
+          <a @click="onShowMyAuditDrawer(row.content ? row.content : row.modeName,row)">
+            {{ row.content ? row.content : row.modeName }}</a>
         </template>
         <template v-else>
           {{ row.content ? row.content : row.modeName }}
         </template>
       </template>
     </ystable>
-    <AuditConfirmModal ref="auditConfirm" @ok="search(true)" />
+    <RecallModal ref="RecallModal" @ok="search(false)"/>
+    <AuditConfirmModal ref="auditConfirm" @ok="search(true)"/>
     <my-audit-drawer ref="myAuditDrawer" @refresh="search(false)"></my-audit-drawer>
   </div>
 </template>
@@ -113,9 +125,12 @@ import MyAuditDrawer from './MyAuditDrawer'
 import AuditConfirmModal from './AuditConfirmModal'
 import ystable from '@/components/Table/ystable'
 import { getStatusName, statusMap } from '@/utils/processDoc/auditStatus'
+import RecallModal from '@/views/customer/RecallModal'
+
 export default {
   name: 'MyAuditTab',
   components: {
+    RecallModal,
     ystable,
     AuditConfirmModal,
     MyAuditDrawer,
@@ -125,9 +140,15 @@ export default {
     params: {
       type: Object,
       required: false,
-      default: () => { return {} }
+      default: () => {
+        return {}
+      }
     },
     isAudit: {
+      type: Boolean,
+      default: false
+    },
+    isRecall: {
       type: Boolean,
       default: false
     },
@@ -143,7 +164,7 @@ export default {
       queryParams: {},
       // 表头
       columns: [
-        !this.isAudit ? {
+        !this.isAudit && !this.isRecall ? {
           type: 'seq',
           width: 50,
           title: '序号'
@@ -175,7 +196,8 @@ export default {
           remoteSort: true,
           showHeaderOverflow: true,
           showOverflow: 'tooltip'
-        }, { title: '发起人',
+        }, {
+          title: '发起人',
           field: 'submiter',
           align: 'left',
           remoteSort: true,
@@ -254,6 +276,12 @@ export default {
     },
     handleEndOpenChange (open) {
       this.endOpen = open
+    },
+    checkBoxMethod ({ row }) {
+      if (this.sign === 2) {
+        return row.revokable === true && row.nodeStatus === 0
+      }
+      return true
     }
   }
 }

@@ -44,24 +44,24 @@
       <a-row>
         <a-col :span="12">
           <a-form-model-item label="技术经理" :label-col="{ span: 4 }">
-            {{ boss.techManagerName }}
+            {{ boss.techManagerName || '-' }}
           </a-form-model-item>
         </a-col>
         <a-col :span="12">
           <a-form-model-item label="财务经理">
-            {{ boss.finaManagerName }}
+            {{ boss.finaManagerName || '-' }}
           </a-form-model-item>
         </a-col>
       </a-row>
       <a-row>
         <a-col :span="12">
           <a-form-model-item label="技术总监" :label-col="{ span: 4 }">
-            {{ boss.techDirectorName }}
+            {{ boss.techDirectorName || '-' }}
           </a-form-model-item>
         </a-col>
         <a-col :span="12">
           <a-form-model-item label="财务总监">
-            {{ boss.finaDirectorName }}
+            {{ boss.finaDirectorName || '-' }}
           </a-form-model-item>
         </a-col>
       </a-row>
@@ -85,39 +85,46 @@
         </a-col>
       </a-row>
 
-      <ServiceEditTable ref="ServiceEditTable" :valid-rules="validRules">
-        <vxe-table-column
-          field="companyName"
-          title="公司"
-          minWidth="200"
-          :edit-render="{ immediate: true }"
-        >
-          <template v-slot="{ row }">
-            <select-company
-              style="width: 100%"
-              prop="companyName"
-              @changeCompany="(data, option) => {
-                row.companyName = data
-                row.customerId = option.key
-              }"
-            />
-          </template>
-        </vxe-table-column>
-        <vxe-table-column
-          field="causes"
-          title="事由"
-          minWidth="200"
-          :edit-render="{ immediate: true }"
-        >
-          <template v-slot="{ row }">
-            <a-textarea
-              style="width: 100%;"
-              v-model="row.causes"
-              :auto-size="{ minRows: 1, maxRows: 5 }"
-            />
-          </template>
-        </vxe-table-column>
-      </ServiceEditTable>
+      <a-form-model-item
+        style="margin-top: 32px;"
+        label="服务事项"
+        :label-col="{ span: 2 }"
+        :wrapper-col="{ span: 20 }">
+        <ServiceEditTable ref="ServiceEditTable" :valid-rules="validRules">
+          <vxe-table-column
+            field="companyName"
+            title="客户名称"
+            minWidth="200"
+            :edit-render="{ immediate: true }"
+          >
+            <template v-slot="{ row }">
+              <select-company
+                style="width: 100%"
+                prop="companyName"
+                @changeCompany="(data, option) => {
+                  row.companyName = data
+                  row.customerId = option.key
+                }"
+              />
+            </template>
+          </vxe-table-column>
+          <vxe-table-column
+            field="causes"
+            title="事由"
+            minWidth="200"
+            :edit-render="{ immediate: true }"
+          >
+            <template v-slot="{ row }">
+              <a-textarea
+                placeholder="请输入事由"
+                style="width: 100%;"
+                v-model="row.causes"
+                :auto-size="{ minRows: 1, maxRows: 5 }"
+              />
+            </template>
+          </vxe-table-column>
+        </ServiceEditTable>
+      </a-form-model-item>
 
       <a-form-model-item label="备注" :label-col="{ span: 2 }">
         <a-textarea
@@ -135,6 +142,7 @@
         right: 0,
         bottom: 0,
         width: '100%',
+        height: '56px',
         borderTop: '1px solid #e9e9e9',
         padding: '20px 20px',
         background: '#fff',
@@ -177,12 +185,12 @@ export default {
   data () {
     return {
       visible: false,
-      deptTitle: '-',
+      deptTitle: '',
       boss: {
-        techManagerName: '-',
-        techDirectorName: '-',
-        finaManagerName: '-',
-        finaDirectorName: '-'
+        techManagerName: '',
+        techDirectorName: '',
+        finaManagerName: '',
+        finaDirectorName: ''
       },
       form: {},
       customerList: [],
@@ -218,12 +226,25 @@ export default {
       return temp.title
     },
     changeStateUser (k, v) {
+      if (v.length === 0) {
+        this.boss[`${k}DirectorId`] = ''
+        this.boss[`${k}DirectorName`] = ''
+        this.boss[`${k}ManagerId`] = ''
+        this.boss[`${k}ManagerName`] = ''
+      }
       this.form[`${k}List`] = v.map(item => ({
         userId: item.key,
         userName: item.label
       }))
     },
     getBoss (k, v, t) {
+      if (v === null) {
+        this.boss[`${k}DirectorId`] = ''
+        this.boss[`${k}DirectorName`] = ''
+        this.boss[`${k}ManagerId`] = ''
+        this.boss[`${k}ManagerName`] = ''
+        return
+      }
       const params = {
         userIds: v.map(i => i.key),
         userName: '',
@@ -231,10 +252,10 @@ export default {
       }
       this.$http.get('/serviceApply/getMemberList', { params }).then(({ success, data, errorMessage }) => {
         if (success) {
-          this.boss[`${k}DirectorId`] = data[`${k}DirectorId`] || '-'
-          this.boss[`${k}DirectorName`] = data[`${k}DirectorName`] || '-'
-          this.boss[`${k}ManagerId`] = data[`${k}ManagerId`] || '-'
-          this.boss[`${k}ManagerName`] = data[`${k}ManagerName`] || '-'
+          this.boss[`${k}DirectorId`] = data[`${k}DirectorId`]
+          this.boss[`${k}DirectorName`] = data[`${k}DirectorName`]
+          this.boss[`${k}ManagerId`] = data[`${k}ManagerId`]
+          this.boss[`${k}ManagerName`] = data[`${k}ManagerName`]
         } else {
           this.$message.error(errorMessage)
         }

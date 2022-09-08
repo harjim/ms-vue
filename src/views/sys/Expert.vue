@@ -2,10 +2,10 @@
   <a-card :bordered="false">
     <a-form layout="inline">
       <a-form-item label="姓名">
-        <a-input v-model="queryParam.realName" placeholder="请输入姓名" style="width:180px" />
+        <a-input v-model="queryParam.realName" placeholder="请输入姓名" style="width:180px"/>
       </a-form-item>
       <a-form-item label="所属行业">
-        <a-input v-model="queryParam.industryCode" placeholder="请输入所属行业" style="width:180px" />
+        <a-input v-model="queryParam.industryCode" placeholder="请输入所属行业" style="width:180px"/>
       </a-form-item>
       <a-form-item label="有效期">
         <a-date-picker
@@ -13,7 +13,8 @@
           v-model="queryParam.beginDate"
           :disabledDate="disabledStartDate"
           @openChange="handleStartOpenChange"
-        />-
+        />
+        -
         <a-date-picker
           format="YYYY-MM-DD"
           v-model="queryParam.endDate"
@@ -48,21 +49,21 @@
         align="left"
         remoteSort
         width="150"
-        fixed="left" />
+        fixed="left"/>
       <vxe-table-column
         field="realName"
         title="姓名"
         align="center"
         remoteSort
         width="120"
-        fixed="left" />
+        fixed="left"/>
       <vxe-table-column field="policitalStatus" title="政治面貌" align="center" remoteSort width="100">
         <template v-slot="{ row }">
           {{ policitalStatusArr[row.policitalStatus] }}
         </template>
       </vxe-table-column>
-      <vxe-table-column field="phone" title="电话" align="center" remoteSort width="120" />
-      <vxe-table-column field="email" title="邮箱" align="center" remoteSort width="180" />
+      <vxe-table-column field="phone" title="电话" align="center" remoteSort width="120"/>
+      <vxe-table-column field="email" title="邮箱" align="center" remoteSort width="180"/>
       <vxe-table-column field="level" title="专家级别" align="center" remoteSort width="100">
         <template v-slot="{ row }">
           {{ levelArr[row.level] }}
@@ -73,9 +74,9 @@
           {{ eduLevelArr[row.eduLevel] }}
         </template>
       </vxe-table-column>
-      <vxe-table-column field="industryCode" title="所属行业" align="center" remoteSort width="120" />
-      <vxe-table-column field="validDate" title="有效日期" align="center" remoteSort width="150" />
-      <vxe-table-column field="issueDate" title="发证日期" align="center" remoteSort width="150" />
+      <vxe-table-column field="industryCode" title="所属行业" align="center" remoteSort width="120"/>
+      <vxe-table-column field="validDate" title="有效日期" align="center" remoteSort width="150"/>
+      <vxe-table-column field="issueDate" title="发证日期" align="center" remoteSort width="150"/>
       <vxe-table-column field="viewUrl" title="查看专家信息" align="center" width="150">
         <template v-slot="{ row }">
           <a :href="row.viewUrl" target="_blank">查看信息</a>
@@ -87,14 +88,14 @@
           <a @click="notApproved(row)" v-if="row.status===2">审核不通过</a>
           <a v-if="row.status===0">
             <a @click="approved(row)">审核通过</a>
-            <a-divider type="vertical" />
+            <a-divider type="vertical"/>
             <a @click="notApproved(row)">审核不通过</a>
           </a>
-          <a-divider type="vertical" />
+          <a-divider type="vertical"/>
           <a-dropdown>
             <a class="ant-dropdown-link">
               更多
-              <a-icon type="down" />
+              <a-icon type="down"/>
             </a>
             <a-menu slot="overlay">
               <a-menu-item v-if="$auth('sys:Expert:edit')">
@@ -110,8 +111,8 @@
         </template>
       </vxe-table-column>
     </ystable>
-    <expert-modal ref="createModal" @ok="handleOk" />
-    <expertStatus-modal ref="statusModal" @ok="refresh" />
+    <expert-modal ref="createModal" @ok="handleOk"/>
+    <expertStatus-modal ref="statusModal" @ok="refresh"/>
   </a-card>
 </template>
 
@@ -160,7 +161,12 @@ export default {
       endOpen: false,
       // custom table alert & rowSelection
       options: {
-        alert: { show: true, clear: () => { this.selectedRowKeys = [] } },
+        alert: {
+          show: true,
+          clear: () => {
+            this.selectedRowKeys = []
+          }
+        },
         rowSelection: {
           selectedRowKeys: this.selectedRowKeys,
           onChange: this.onSelectChange
@@ -169,8 +175,7 @@ export default {
       optionAlertShow: false
     }
   },
-  filters: {
-  },
+  filters: {},
   mounted () {
   },
   created () {
@@ -202,7 +207,7 @@ export default {
     },
     refresh (flag) {
       if (flag) {
-        this.$message.success('审核成功')
+        this.$message.success('操作成功')
       }
       this.$refs.table.refresh(false)
     },

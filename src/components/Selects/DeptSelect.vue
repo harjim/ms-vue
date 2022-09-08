@@ -14,7 +14,6 @@
   ></a-tree-select>
 </template>
 <script>
-
 export default {
   name: 'DeptSelect',
   props: {
@@ -33,25 +32,24 @@ export default {
       default: false
     }
   },
-  data () {
+  data() {
     return {
       deptTree: [],
-      val: undefined
+      val: this.value
     }
   },
   watch: {
-    value (val) {
+    value(val) {
       this.val = typeof val === 'number' ? val.toString() : val
     }
   },
-  created () {
-    this.$getDeptTree()
-      .then(res => {
-        this.deptTree = res
-      })
+  created() {
+    this.$getDeptTree().then((res) => {
+      this.deptTree = res
+    })
   },
   methods: {
-    change (v, l, e) {
+    change(v, l, e) {
       const fPath = e.triggerNode && e.triggerNode.eventKey ? e.triggerNode.eventKey : ''
       this.$emit('change', v, fPath)
       this.$emit('input', v, fPath)

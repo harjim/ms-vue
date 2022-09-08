@@ -7,6 +7,7 @@ import permission from './modules/permission'
 import enums from './modules/enums'
 import service from './modules/service'
 import workRecord from './modules/workRecord'
+import contract from './modules/contract'
 import getters from './getters'
 
 Vue.use(Vuex)
@@ -18,7 +19,8 @@ export default new Vuex.Store({
     permission,
     enums,
     service,
-    workRecord
+    workRecord,
+    contract
   },
   state: {
     totalMax: 9999999999,

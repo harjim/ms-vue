@@ -41,6 +41,7 @@
 </template>
 <script>
 import { popupContainer } from '@/views/customer/modules/AuditProgress/modules/js/screenFullMountDom'
+
 export default {
   data () {
     return {
@@ -65,9 +66,13 @@ export default {
           this.spin = false
           return
         }
-        this.$http.post('/projectProgress/projectAudits', { suggestion: values.suggestion, instanceIds: this.instanceIds, pass }).then(res => {
+        this.$http.post('/projectProgress/projectAudits', {
+          suggestion: values.suggestion,
+          instanceIds: this.instanceIds,
+          pass
+        }).then(res => {
           if (res.success && res.data) {
-            this.$message.success('审核成功')
+            this.$message.success('操作成功')
             this.visible = false
             this.$emit('ok')
           } else {
@@ -87,12 +92,14 @@ export default {
   border: 1px solid #fff;
   background: @color;
 }
+
 #form {
   .reject {
     &:hover {
       .hover(red);
     }
   }
+
   .success {
     &:hover {
       .hover(#1890ff);

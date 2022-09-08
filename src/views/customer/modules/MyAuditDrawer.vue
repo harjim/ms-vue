@@ -47,6 +47,8 @@ import ProjectDetail from './AuditProgress/modules/ProjectDetail'
 import Proposal from './AuditProgress/modules/Proposal'
 import Achievement from './AuditProgress/modules/Achievement'
 import RdFee from './AuditProgress/modules/RdFee'
+import ServiceApply from './AuditProgress/modules/ServiceApply'
+import ServiceRecord from './AuditProgress/modules/ServiceRecord'
 
 const componentNames = {
   1: 'frameworkTab',
@@ -58,7 +60,9 @@ const componentNames = {
   9: 'innovateTab',
   11: 'Proposal',
   12: 'Achievement',
-  13: 'RdFee'
+  13: 'RdFee',
+  14: 'ServiceApply',
+  15: 'ServiceRecord'
 }
 export default {
   name: 'MyAuditDrawer',
@@ -75,7 +79,9 @@ export default {
     ProjectDetail,
     Proposal,
     Achievement,
-    RdFee
+    RdFee,
+    ServiceApply,
+    ServiceRecord
   },
   data () {
     return {
@@ -127,7 +133,8 @@ export default {
         }
       }).catch((error) => {
         this.$message.error(error.message)
-      }).finally((res) => { })
+      }).finally((res) => {
+      })
     },
     onClose () {
       this.isVisible = false

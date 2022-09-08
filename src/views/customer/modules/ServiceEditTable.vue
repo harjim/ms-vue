@@ -6,12 +6,11 @@
       stripe
       keep-source
       show-footer
-      border="inner"
       :data="customList"
       :edit-rules="validRules"
       :max-height="244"
       size="small"
-      :edit-config="{ trigger: 'manual', mode: 'row', autoClear: false, showIcon: false }"
+      :edit-config="edit && { trigger: 'manual', mode: 'row', autoClear: false, showIcon: false }"
       :footer-method="footerMethod"
     >
       <vxe-table-column type="seq" width="60" fixed="left" title="序号"/>
@@ -82,44 +81,26 @@ export default {
     validAllEvent () {
       const { fullData } = this.$refs.xTable.getTableData()
       if (fullData.length === 0) {
-        this.$message.error('请先添加记录数据')
+        this.$message.error('请先添加服务客户记录')
         return [false]
       }
       for (let i = 0; i < fullData.length; i++) {
         const fullDatum = fullData[i]
         for (const validRulesKey in this.validRules) {
           if (!fullDatum[validRulesKey]) {
-            this.$message.error(`记录第${i + 1}行${this.validRules[validRulesKey][0].message}`)
+            this.$message.error(`服务事项第${i + 1}行${this.validRules[validRulesKey][0].message}`)
             return [false]
           }
         }
       }
       return [true, fullData]
     }
-  },
-  beforeCreate () {
-  },
-  created () {
-  },
-  beforeMount () {
-  },
-  mounted () {
-  },
-  beforeUpdate () {
-  },
-  updated () {
-  },
-  beforeDestroy () {
-  },
-  destroyed () {
   }
 }
 </script>
 
 <style lang="less" scoped>
 .box {
-  margin: 32px 0;
-
   &__btn {
     margin-top: 12px;
   }

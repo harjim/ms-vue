@@ -53,15 +53,34 @@
       :toolbar="{ refresh:true, zoom: true, custom: true, slots: { buttons: 'toolbar_buttons' } }"
     >
       <template v-slot:toolbar_buttons>
-        <a-button v-if="control.deliverMaster" type="primary" :disabled="!selectedRowKeys.length" @click="clickHandler('transfer','selectedRowKeys','selectedActivateRows')">转交</a-button>
-        <a-button style="margin-left:10px;" v-if="control.activates" type="primary" :disabled="!selectedActivateRows.length" @click="clickHandler('activate','selectedActivateRows','selectedRowKeys')">激活</a-button>
+        <a-button
+          v-if="control.deliverMaster"
+          type="primary"
+          :disabled="!selectedRowKeys.length"
+          @click="clickHandler('transfer','selectedRowKeys','selectedActivateRows')">转交
+        </a-button>
+        <a-button
+          style="margin-left:10px;"
+          v-if="control.activates"
+          type="primary"
+          :disabled="!selectedActivateRows.length"
+          @click="clickHandler('activate','selectedActivateRows','selectedRowKeys')">激活
+        </a-button>
+        <a-button
+          style="margin-left:10px;"
+          v-if="control.cancel"
+          type="primary"
+          :disabled="!selectedRowKeys.length && !selectedActivateRows.length"
+          @click="$refs.cancel.open(selectedActivateRows, selectedRowKeys)">取消
+        </a-button>
       </template>
       <template #status="{row}">
         <span>{{ statusMap[row.status] }}</span>
       </template>
     </ystable>
-    <transfer ref="transfer" @ok="search(true)" />
+    <transfer ref="transfer" @ok="search(true)"/>
     <activate-modal ref="activate" @ok="search(true)"/>
+    <cancel-modal ref="cancel" @ok="search(true)"/>
   </a-card>
 </template>
 
@@ -72,9 +91,11 @@ import { statusMap } from '@/utils/processDoc/auditStatus'
 import { SearchSelect } from '@/components/Selects'
 import transfer from './modules/transfer.vue'
 import ActivateModal from './modules/ActivateModal'
+import CancelModal from '@/views/flow/modules/CancelModal'
 
 export default {
   components: {
+    CancelModal,
     ystable,
     TableSearchbar,
     SearchSelect,
@@ -101,7 +122,8 @@ export default {
       control: {
         search: this.$auth('flow:flowList:search'),
         deliverMaster: this.$auth('flow:flowList:deliverMaster'),
-        activates: this.$auth('flow:flowList:activates')
+        activates: this.$auth('flow:flowList:activates'),
+        cancel: this.$auth('flow:flowList:cancel')
       }
     }
   },

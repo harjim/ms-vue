@@ -10,25 +10,26 @@
   <a-card :bordered="false">
     <a-tabs v-model="activeKey" @change="tabChange">
       <a-tab-pane key="audit1" tab="待处理" v-if="control.handle">
-        <MyAuditTab ref="audit1" :key="1" :sign="1" :params="{ongoing: true}" :isAudit="true"/>
+        <MyAuditTab ref="audit1" :key="1" :sign="1" :params="{ ongoing: true }" :isAudit="true" />
       </a-tab-pane>
       <a-tab-pane key="audit2" tab="我发起的" v-if="control.send">
-        <MyAuditTab ref="audit2" :key="2" :sign="2" :params="{mySubmit: true}"/>
+        <MyAuditTab ref="audit2" :key="2" :sign="2" :params="{ mySubmit: true }" :isRecall="true" />
       </a-tab-pane>
       <a-tab-pane key="audit3" tab="我收到的" v-if="control.receive">
-        <MyAuditTab ref="audit3" :key="3" :sign="3"/>
+        <MyAuditTab ref="audit3" :key="3" :sign="3" />
       </a-tab-pane>
     </a-tabs>
   </a-card>
 </template>
 <script>
 import MyAuditTab from './modules/MyAuditTab'
+
 export default {
   name: 'MyAudit',
   components: {
     MyAuditTab
   },
-  data () {
+  data() {
     return {
       activeKey: 'audit1',
       control: {
@@ -38,11 +39,11 @@ export default {
       }
     }
   },
-  created () {
+  created() {
     this.activeKey = this.control.handle ? 'audit1' : this.control.send ? 'audit2' : 'audit3'
   },
   methods: {
-    tabChange (key) {
+    tabChange(key) {
       if (this.$refs[key]) {
         this.$refs[key].search(true)
       }

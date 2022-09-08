@@ -5,7 +5,6 @@
  * @param {function} callback 移动后回调
  */
 export const startDrag = (bar, target, callback) => {
-  console.log(1)
   let params = {
     top: 0,
     left: 0,
@@ -74,7 +73,6 @@ export const startDrag = (bar, target, callback) => {
         // 执行移动
         target.style.left = zLeft + 'px'
         target.style.top = zTop + 'px'
-        console.log(target)
         if (typeof callback === 'function') {
           callback(zLeft, zTop)
         }

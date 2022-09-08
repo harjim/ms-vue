@@ -1,11 +1,11 @@
 <template>
-  <a-drawer :visible="visible" destroyOnClose title="添加服务记录" :width="960" @close="close">
+  <a-drawer :visible="visible" destroyOnClose title="添加服务记录" :width="1184" @close="close">
     <a-form-model ref="form" :model="form" :label-col="{ span: 5 }">
       <a-row>
         <a-col :span="12">
           <a-form-model-item label="客户名称" prop="customerId" required>
             <select-company
-              style="width: 200px;"
+              style="width: 420px;"
               prop="companyName"
               url="/serviceRecord/getCustomerList"
               @changeCompany="getCustomerList"
@@ -14,36 +14,38 @@
         </a-col>
         <a-col :span="12">
           <a-form-model-item label="关联单号" prop="serviceNo">
-            <a-popover
-              :autoAdjustOverflow="false"
-              placement="bottom"
-              destroyTooltipOnHide
-              arrowPointAtCenter
-              trigger="click"
-            >
-              <template slot="content">
-                <ystable
-                  ref="pTable"
-                  query-url="/serviceRecord/getServiceNo"
-                  :params="form"
-                  size="mini"
-                  :max-height="200"
-                  show-overflow="title"
-                  @cell-click="clickRow"
-                >
-                  <vxe-table-column field="serviceNo" title="服务单号" minWidth="60"/>
-                  <vxe-table-column field="ownerName" title="申请人" width="100"/>
-                  <vxe-table-column field="date" title="预计起止日期"/>
-                </ystable>
-              </template>
+            <vxe-pulldown ref="pulldown" style="width: 420px;">
               <a-input
-                readOnly
-                v-model="form.serviceNo"
-                style="width: 200px;"
                 :disabled="!form.customerId"
-                placeholder="请选择服务单号"
-              />
-            </a-popover>
+                placeholder="请选择关联单号（可输入单号搜索）"
+                v-model="form.serviceNo"
+                @focus="onPulldownFocus"
+              >
+                <a-icon slot="suffix" type="search"/>
+              </a-input>
+              <template #dropdown>
+                <div class="my-dropdown">
+                  <ystable
+                    highlight-current-row
+                    ref="table"
+                    query-url="/serviceRecord/getServiceNo"
+                    :params="queryParams"
+                    size="mini"
+                    header-align="center"
+                    highlight-hover-row
+                    show-overflow
+                    @cell-click="clickRow"
+                    resizable
+                    auto-resize
+                    row-id="serviceNo"
+                  >
+                    <vxe-table-column field="serviceNo" title="服务单号" width="60"/>
+                    <vxe-table-column field="ownerName" title="申请人" width="100"/>
+                    <vxe-table-column field="date" title="预计起止日期" width="140"/>
+                  </ystable>
+                </div>
+              </template>
+            </vxe-pulldown>
           </a-form-model-item>
         </a-col>
       </a-row>
@@ -53,7 +55,7 @@
           <a-form-model-item label="业务员" required>
             <search-select
               :disabled="!form.customerId"
-              style="width: 200px;"
+              style="width: 420px;"
               url="/user/userForSelect"
               searchField="realName"
               sTitle="realName"
@@ -64,7 +66,7 @@
         </a-col>
         <a-col :span="12">
           <a-form-model-item label="所属部门" prop="deptName" required>
-            <a-input v-model="form.deptName" style="width: 200px;" disabled placeholder="请选择业务员"/>
+            <a-input v-model="form.deptName" style="width: 420px;" disabled placeholder="请选择业务员"/>
           </a-form-model-item>
         </a-col>
       </a-row>
@@ -102,6 +104,7 @@
             <a-input-number
               :min="0"
               :step="0.01"
+              :max="$store.state.totalMax"
               v-model="row.amount"
               placeholder="请输入费用金额"
               style="width: 100%;"
@@ -127,6 +130,7 @@
         right: 0,
         bottom: 0,
         width: '100%',
+        height: '56px',
         borderTop: '1px solid #e9e9e9',
         padding: '20px 20px',
         background: '#fff',
@@ -174,6 +178,7 @@ export default {
   },
   data () {
     return {
+      queryParams: {},
       visible: false,
       editCus: false,
       form: {},
@@ -199,9 +204,6 @@ export default {
         this.form.ownerId = v.id
         this.form.ownerName = v.realName
       }
-    },
-    'form.customerId' (n, o) {
-      if (n !== o) this.$refs.pTable && this.$refs.pTable.refresh(true)
     }
   },
   methods: {
@@ -241,7 +243,10 @@ export default {
         return
       }
       const { datasource } = option.data.attrs
-      this.form.customerId = datasource.customerId
+      this.form = {
+        ...this.form,
+        customerId: datasource.customerId
+      }
       if (datasource.ownerId) {
         this.owner = {
           id: datasource.ownerId,
@@ -301,23 +306,14 @@ export default {
           deptName: row.deptName
         }
       }
+    },
+    onPulldownFocus () {
+      this.$refs.pulldown.showPanel()
+      if (this.queryParams.customerId !== this.form.customerId) {
+        this.queryParams.customerId = this.form.customerId
+        this.$refs.table.refresh(true)
+      }
     }
-  },
-  beforeCreate () {
-  },
-  created () {
-  },
-  beforeMount () {
-  },
-  mounted () {
-  },
-  beforeUpdate () {
-  },
-  updated () {
-  },
-  beforeDestroy () {
-  },
-  destroyed () {
   }
 }
 </script>
@@ -325,5 +321,10 @@ export default {
 <style lang="less" scoped>
 & /deep/ .ant-form-item {
   margin-bottom: 0;
+}
+
+.my-dropdown {
+  background-color: #fff;
+  box-shadow: 0 0 6px 2px rgba(0, 0, 0, 0.1);
 }
 </style>

@@ -109,6 +109,7 @@
           align="center"
           fixed="left"
           width="150"
+          remoteSort
         >
           <template v-slot="{ row }">
             <a v-if="$auth('customer:serviceApply:check')" @click="openDetail(row)">{{
@@ -121,7 +122,8 @@
           title="客户名称"
           field="customers"
           fixed="left"
-          width="160"
+          width="260"
+          remoteSort
         ></vxe-table-column>
         <vxe-table-column
           title="预计起止日期"
@@ -133,11 +135,13 @@
           title="申请人"
           field="ownerName"
           width="100"
+          remoteSort
         />
         <vxe-table-column
           title="所属部门"
           field="deptName"
           width="100"
+          remoteSort
         />
         <vxe-table-column
           title="技术人员"
@@ -158,7 +162,7 @@
           </template>
         </vxe-table-column>
         <vxe-table-column
-          title="财务人员"
+          title="其他人员"
           field="otherList"
           width="100"
         >
@@ -169,7 +173,8 @@
         <vxe-table-column
           title="流程状态"
           field="status"
-          width="90"
+          width="110"
+          remoteSort
         >
           <template v-slot="{ row }">
             <a-badge :color="statusColor[row.status === null ? 5 : row.status]" :text="getStatusName(row.status)"/>
@@ -178,18 +183,21 @@
         <vxe-table-column
           title="当前处理人"
           field="auditUsers"
-          width="100"
+          width="120"
+          remoteSort
         />
         <vxe-table-column
           title="创建时间"
           field="createTime"
           align="center"
           width="140"
+          remoteSort
         />
         <vxe-table-column
           title="最后修改时间"
           field="lastUpdateTime"
           width="140"
+          remoteSort
         />
       </ystable>
       <ServiceOrderDetail ref="ServiceOrderDetail" @refresh="onSearch"/>
@@ -204,7 +212,7 @@
 <script>
 import ystable from '@/components/Table/ystable'
 import ServiceOrderDetail from '@/views/customer/modules/ServiceOrderDetail'
-import { getStatusName, statusColor, statusMap } from '@/utils/processDoc/auditStatus'
+import { getStatusName, statusColor } from '@/utils/processDoc/auditStatus'
 import DeptSelect from '@/components/Selects/DeptSelect'
 import SearchSelect from '@/components/Selects/SearchSelect'
 import SelectCompany from '@/components/Selects/SelectCompany'
@@ -221,6 +229,13 @@ export default {
     ystable
   },
   data () {
+    const statusMap = {
+      '0': '进行中',
+      '1': '通过',
+      '2': '驳回',
+      '4': '提交',
+      '5': '未提交'
+    }
     return {
       statusMap,
       statusColor,
@@ -232,10 +247,10 @@ export default {
   },
   methods: {
     getStatusName,
-    onSearch () {
+    onSearch (flag = true) {
       this.selectedRowKeys = []
       this.selectUser = []
-      this.$refs.xTable.refresh(true)
+      this.$refs.xTable.refresh(flag)
     },
     selectChangeEvent ({ checked, records }) {
       this.selectedRowKeys = records.map(item => {

@@ -8,13 +8,13 @@
     :bodyStyle="{ overflowY: 'hidden' }"
     @close="close"
   >
-    <tab-layout>
+    <tab-layout :class="{ 'not-log': currentOrder.instanceId }">
       <template #up>
         <div style="height: 100%">
           <ServiceOrderDetailCheck ref="ServiceOrderDetailCheck"/>
         </div>
       </template>
-      <template #down>
+      <template #down v-if="currentOrder.instanceId">
         <template
           v-if="$auth('customer:serviceApply:review') || $auth('customer:serviceApply:audit')"
         >
@@ -30,6 +30,7 @@
         right: 0,
         bottom: 0,
         width: '100%',
+        height: '56px',
         borderTop: '1px solid #e9e9e9',
         padding: '20px 20px',
         background: '#fff',
@@ -95,7 +96,7 @@ export default {
       this.visible = false
     },
     handleSaveForm (url) {
-      if (!this.currentOrder.techList.length && !this.currentOrder.finaList.length) {
+      if (!(this.currentOrder.techList && this.currentOrder.techList.length) && !(this.currentOrder.finaList && this.currentOrder.finaList.length)) {
         this.$message.error('技术人员与财务人员至少选择一个')
         return
       }
@@ -110,7 +111,7 @@ export default {
           if (success) {
             this.$message.success('操作成功')
             this.close()
-            this.$emit('refresh')
+            this.$emit('refresh', false)
           } else {
             this.$message.error(errorMessage)
           }
@@ -126,7 +127,7 @@ export default {
   height: calc(100vh - 64px);
 }
 
-& /deep/ .center_wrap {
+.not-log /deep/ .center_wrap {
   display: flex;
   flex-direction: column;
   height: calc(100vh - 110px);
@@ -155,8 +156,7 @@ export default {
   .down {
     overflow: auto;
     flex: 1;
-    height: 320px;
-    min-height: 260px;
+    height: 100%;
 
     &::-webkit-scrollbar {
       display: none;

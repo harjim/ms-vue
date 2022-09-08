@@ -73,7 +73,8 @@
           title="客户名称"
           field="companyName"
           fixed="left"
-          width="100"
+          width="260"
+          remoteSort
         >
           <template v-slot="{ row }">
             <a v-if="$auth('customer:workRecord:check')" @click="openDetail(row)">{{ row.companyName }}</a>
@@ -86,14 +87,16 @@
           align="center"
           fixed="left"
           width="200"
+          remoteSort
         />
         <vxe-table-column
           title="业务员"
           field="ownerName"
           width="100"
+          remoteSort
         />
-        <vxe-table-column title="所属部门" width="100" field="deptName"/>
-        <vxe-table-column title="事项" width="60" align="right">
+        <vxe-table-column title="所属部门" width="100" field="deptName" remoteSort/>
+        <vxe-table-column field="itemCnt" title="事项" width="80" align="right" remoteSort>
           <template v-slot="{ row }">
             <a-popover
               :autoAdjustOverflow="false"
@@ -105,11 +108,14 @@
               <a>{{ row.list.length }}</a>
               <template slot="content">
                 <vxe-grid
+                  border
+                  resizable
                   auto-resize
                   :data="row.list"
                   show-overflow="title"
                   max-height="400"
                   show-footer
+                  size="mini"
                   :footerMethod="footerMethod"
                 >
                   <vxe-table-column type="seq" title="序号" width="60"/>
@@ -118,9 +124,9 @@
                       <div>{{ type2value(row.itemType) }}</div>
                     </template>
                   </vxe-table-column>
-                  <vxe-table-column field="date" title="起止时间" align="center" width="100"></vxe-table-column>
+                  <vxe-table-column field="date" title="起止时间" align="center" width="220"></vxe-table-column>
                   <vxe-table-column field="amount" title="费用" width="100"></vxe-table-column>
-                  <vxe-table-column field="remark" title="备注" minWidth="100"></vxe-table-column>
+                  <vxe-table-column field="remark" title="备注" width="100"></vxe-table-column>
                 </vxe-grid>
               </template>
             </a-popover>
@@ -135,11 +141,13 @@
           title="创建人"
           field="creatorName"
           width="100"
+          remoteSort
         />
         <vxe-table-column
           title="流程状态"
           field="status"
           width="120"
+          remoteSort
         >
           <template v-slot="{ row }">
             <a-badge :color="statusColor[row.status === null ? 5 : row.status]" :text="getStatusName(row.status)"/>
@@ -148,19 +156,22 @@
         <vxe-table-column
           title="当前处理人"
           field="auditUsers"
-          width="100"
+          width="120"
+          remoteSort
         />
         <vxe-table-column
           title="创建时间"
           field="createTime"
           width="160"
           align="center"
+          remoteSort
         />
         <vxe-table-column
           title="最后更新时间"
           field="lastUpdateTime"
           width="160"
           align="center"
+          remoteSort
         />
       </ystable>
 
@@ -176,7 +187,7 @@
 <script>
 import ystable from '@/components/Table/ystable'
 import SelectCompany from '@/components/Selects/SelectCompany'
-import { getStatusName, statusColor, statusMap } from '@/utils/processDoc/auditStatus'
+import { getStatusName, statusColor } from '@/utils/processDoc/auditStatus'
 import SearchSelect from '@/components/Selects/SearchSelect'
 import WorkRecordAdd from '@/views/customer/modules/WorkRecordAdd'
 import WorkRecordCheck from '@/views/customer/modules/WorkRecordCheck'
@@ -186,6 +197,13 @@ export default {
   components: { WorkRecordCheck, WorkRecordAdd, SearchSelect, SelectCompany, ystable },
   props: {},
   data () {
+    const statusMap = {
+      '0': '进行中',
+      '1': '通过',
+      '2': '驳回',
+      '4': '提交',
+      '5': '未提交'
+    }
     return {
       statusMap,
       statusColor,
@@ -200,8 +218,8 @@ export default {
   watch: {},
   methods: {
     getStatusName,
-    onSearch () {
-      this.$refs.xTable.refresh(true)
+    onSearch (flag = true) {
+      this.$refs.xTable.refresh(flag)
     },
     countArrCost (arr) {
       return arr.reduce((total, row) => {
@@ -261,26 +279,12 @@ export default {
       })
     }
   },
-  beforeCreate () {
-  },
-  created () {
-  },
   beforeMount () {
     this.$http.get('/sysDictionary/getDictionary', {
       params: { type: 17 }
     }).then(({ data }) => {
       this.dictionary = data
     })
-  },
-  mounted () {
-  },
-  beforeUpdate () {
-  },
-  updated () {
-  },
-  beforeDestroy () {
-  },
-  destroyed () {
   }
 }
 </script>

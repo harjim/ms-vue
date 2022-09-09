@@ -440,13 +440,14 @@ export default {
     },
     setMasterBtnDisabled () {
       return this.selectedRowKeys.length === 0 || this.selectedRowKeys.some(row => {
-        return !((row.nodeNumber || 0) > 1)
+        return (!((row.nodeNumber || 0) > 1)) || this.isEditStatus(row.status)
       })
     },
     setCancelApplication () {
-      return this.selectedRowKeys.length === 0 || this.selectedRowKeys.filter(row => {
-        return !row.status
-      }).length === 0
+      // 选择列且列中存在状态为进行中(status = 0)
+      return this.selectedRowKeys.length === 0 || this.selectedRowKeys.some(row => {
+        return row.status
+      })
     }
   },
   created () {
@@ -519,7 +520,8 @@ export default {
       })
     },
     checCheckboxkMethod ({ row }) {
-      return this.isEditStatus(row.status) || ((row.nodeNumber || 0) > 1)
+      // return this.isEditStatus(row.status) || ((row.nodeNumber || 0) > 1)
+      return true
     }
   }
 }

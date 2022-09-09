@@ -478,7 +478,7 @@
               'sealType',
               {
                 rules: [{ required: true, message: '请选择公章类型' }],
-                initialValue: row.sealType
+                initialValue: row.sealType ? row.sealType.split(',') : []
               }
             ]"
           />

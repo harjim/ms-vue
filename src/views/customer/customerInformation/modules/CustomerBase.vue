@@ -136,26 +136,9 @@
               <a-select
                 v-if="isEdit"
                 style="width: 100%"
-                v-decorator="['status', { rules: [{ required: true, message: '请选择当前状态' }], initialValue: `data.status` }]"
+                v-decorator="['status', { rules: [{ required: true, message: '请选择当前状态' }], initialValue: data.status }]"
               >
-                <a-select-option value="10">
-                  邀约
-                </a-select-option>
-                <a-select-option value="20">
-                  拜访
-                </a-select-option>
-                <a-select-option value="30">
-                  已签
-                </a-select-option>
-                <!-- <a-select-option :key="10" value="邀约">
-                  邀约
-                </a-select-option>
-                <a-select-option :key="20" value="拜访">
-                  拜访
-                </a-select-option>
-                <a-select-option :key="30" value="已签">
-                  已签
-                </a-select-option> -->
+                <a-select-option v-for="(label, key) in typeData" :key="key" :value="key">{{ label }}</a-select-option>
               </a-select>
               <span v-else>
                 {{ typeData[data.status] }}

@@ -97,7 +97,6 @@ export default {
   },
   data () {
     return {
-      etypes: { '1': '研究人员', '2': '技术人员', '3': '辅助人员' },
       queryParam: {},
       imagePath: undefined
     }

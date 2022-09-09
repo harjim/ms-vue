@@ -85,6 +85,7 @@
           <a-row>
             <a-col class="colClass" :span="24">
               <a-form-item
+                class="textarea"
                 label="权利要求内容"
                 :labelCol="fullCol"
                 :wrapperCol="fullCol"
@@ -101,6 +102,7 @@
             </a-col>
             <a-col class="colClass" :span="24">
               <a-form-item
+                class="textarea"
                 label="说明书内容"
                 :labelCol="fullCol"
                 :wrapperCol="fullCol"

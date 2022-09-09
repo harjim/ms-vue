@@ -83,8 +83,7 @@ const columns = {
       headerAlign: 'center',
       align: 'left',
       formatter: ({ cellValue }) => {
-        const map = { '-1': '-', '1': '研究人员', '2': '技术人员', '3': '辅助人员' }
-        return map[cellValue]
+        return cellValue && cellValue !== -1 ? this.$getEnums('rdEmployeeEnum').find(item => item.value === cellValue).label : '-'
       } },
     { field: 'deptName', title: '研发部门', width: 150, headerAlign: 'center', align: 'left' },
     { field: 'specialities', title: '专业', headerAlign: 'center', align: 'left' }
@@ -100,8 +99,7 @@ const columns = {
       headerAlign: 'center',
       align: 'left',
       formatter: ({ cellValue }) => {
-        const map = { '0': '普通', '30000': '设备', '30100': '仪器', '40001': '软件摊销' }
-        return map[cellValue]
+        return cellValue ? this.$getEnums('equipmentEnum').find(item => item.value === Number(cellValue)).label : ''
       } },
     { field: 'deptName', title: '研发部门', width: 120, headerAlign: 'center', align: 'left' },
     { field: 'workshop', title: '车间', width: 120, headerAlign: 'center', align: 'left' },

@@ -1,160 +1,30 @@
 <template>
-  <a-card :bordered="false">
-    <template v-if="$auth('innovation:checkPayment:search')">
-      <a-form-model layout="inline" ref="form" :module="form">
-        <a-form-model-item label="客户名称">
-          <a-input v-model="form.companyName" placeholder="请输入客户名称" style="width: 240px" />
-        </a-form-model-item>
-        <a-form-model-item label="年份">
-          <year-select style="width: 240px" v-model="form.year" placeholder="请选择年份" />
-        </a-form-model-item>
-        <a-form-model-item label="业务员">
-          <search-select
-            style="width: 240px"
-            url="/user/userForSelect"
-            searchField="realName"
-            sTitle="realName"
-            :multiple="false"
-            placeholder="请输入业务员"
-            v-model="form.ownerId"
-          />
-        </a-form-model-item>
-        <a-form-model-item label="当前处理人">
-          <a-input v-model="form.auditUsers" placeholder="请输入当前处理人" style="width: 240px" />
-        </a-form-model-item>
-        <a-form-model-item label="节点">
-          <a-select v-model="form.nodeNumber" placeholder="请选择节点" style="width: 240px" allowClear>
-            <a-select-option v-for="(item, idx) in processType" v-if="idx !== 0" :key="item.value">{{
-              item.label
-            }}</a-select-option>
-          </a-select>
-        </a-form-model-item>
-        <a-form-model-item label="流程状态">
-          <a-select v-model="form.status" placeholder="请选择流程状态" style="width: 240px" allowClear>
-            <a-select-option v-for="(v, k) in statusMap" :key="k" :value="k">{{ v }}</a-select-option>
-          </a-select>
-        </a-form-model-item>
-        <a-form-model-item label="技术人员">
-          <search-select
-            style="width: 240px"
-            url="/user/userForSelect"
-            searchField="realName"
-            sTitle="realName"
-            :multiple="false"
-            placeholder="请输入技术人员"
-            v-model="form.techId"
-          />
-        </a-form-model-item>
-        <a-form-model-item label="财务经理">
-          <search-select
-            style="width: 240px"
-            url="/user/userForSelect"
-            searchField="realName"
-            sTitle="realName"
-            :multiple="false"
-            placeholder="请输入财务经理"
-            v-model="form.finaManagerId"
-          />
-        </a-form-model-item>
-        <a-form-model-item>
-          <a-button type="primary" @click="refresh">查询</a-button>
-        </a-form-model-item>
-      </a-form-model>
-
-      <ystable
-        ref="xTable"
-        query-url="checkPayment/getList"
-        :params="getParams()"
-        :seq-config="{ startIndex: 1 }"
-        :toolbar="{
-          refresh: true,
-          zoom: true,
-          custom: true
-        }"
-        show-overflow="tooltip"
-        :columns="columns"
-        remoteSort
-        @checkbox-all="selectAllEvent"
-        @checkbox-change="selectChangeEvent"
-      >
-        <template v-slot:buttons>
-          <template v-if="$auth('innovation:checkPayment:add')">
-            <a-button style="margin-right: 12px" type="primary" @click="$refs.CheckDrawer.add()">添加</a-button>
-          </template>
-          <template v-if="$auth('innovation:checkPayment:del')">
-            <a-button
-              style="margin-right: 12px"
-              type="primary"
-              :disabled="selectedRowKeys.length === 0"
-              @click="delContract"
-            >
-              删除
-            </a-button>
-          </template>
-        </template>
-
-        <template #companyName="{ row }">
-          <a
-            v-if="$auth('innovation:checkPayment:edit') || $auth('innovation:checkPayment:check')"
-            @click="$refs.CheckDrawer.edit(row.id)"
-          >
-            {{ row.companyName }}
-          </a>
-          <span v-else>{{ row.companyName }}</span>
-        </template>
-
-        <template #rdCnt="{ row }">
-          <span v-if="!row.rdCnt">-</span>
-          <a-popover v-else :autoAdjustOverflow="false" placement="bottom" trigger="click">
-            <a>{{ row.rdCnt }}</a>
-            <template #content>
-              <div class="my-dropdown4">
-                <vxe-grid
-                  border
-                  resizable
-                  highlight-hover-row
-                  auto-resize
-                  max-height="244"
-                  size="mini"
-                  :data="row.list"
-                  show-overflow="title"
-                >
-                  <vxe-table-column title="序号" type="seq" width="60" />
-                  <vxe-table-column title="项目编号" field="rdTitle" width="140" />
-                  <vxe-table-column title="项目名称" field="pname" width="200" />
-                </vxe-grid>
-              </div>
-            </template>
-          </a-popover>
-        </template>
-
-        <template #status="{ row }">
-          <a-badge :color="statusColor[row.status === undefined ? 5 : row.status]" :text="getStatusName(row.status)" />
-        </template>
-      </ystable>
-      <PreviewModal ref="PreviewModal" />
-      <CheckDrawer ref="CheckDrawer" @refresh="refresh" :preview="preview" />
-    </template>
-    <a-empty v-else :description="false" />
-  </a-card>
+  <div>
+    <MainTableLayout
+      :control="control"
+      :columns="columns"
+      :items="items"
+      :wrapper="wrapper"
+      url-prefix="checkPayment"
+      @add="add"
+    />
+    <CheckPaymentDrawer ref="CheckPaymentDrawer" />
+    <preview-modal ref="previewModal" />
+  </div>
 </template>
 
 <script>
-import ystable from '@/components/Table/ystable'
-import SearchSelect from '@/components/Selects/SearchSelect'
-import { YearSelect } from '@/components/Selects'
-import { getStatusName, statusColor } from '@/utils/processDoc/auditStatus'
-import CheckDrawer from './modules/CheckDrawer.vue'
 import PreviewModal from '@/components/PreviewModal/PreviewModal.vue'
+import MainTableLayout from '@/components/Process/MainTableLayout'
+import _ from 'lodash'
+import CheckPaymentDrawer from './modules/CheckPaymentDrawer.vue'
 
 export default {
   name: 'CheckPayment',
   components: {
-    ystable,
-    SearchSelect,
-    YearSelect,
-    CheckDrawer,
-    PreviewModal
+    PreviewModal,
+    MainTableLayout,
+    CheckPaymentDrawer
   },
   data() {
     const processType = [
@@ -174,10 +44,27 @@ export default {
     const columns = [
       { type: 'checkbox', width: '60', align: 'center', fixed: 'left' },
       { title: '年份', field: 'year', width: '100', align: 'center', fixed: 'left', sortable: true },
-      { title: '客户名称', field: 'companyName', width: '160', fixed: 'left', slots: { default: 'companyName' } },
+      {
+        title: '客户名称',
+        field: 'companyName',
+        width: '160',
+        fixed: 'left',
+        slots: { default: 'editEntry' }
+      },
       { title: '所属部门', field: 'deptName', width: '100', sortable: true },
       { title: '业务员', field: 'ownerName', width: '100', sortable: true },
-      { title: '查新数量', field: 'rdCnt', width: '80', slots: { default: 'rdCnt' } },
+      {
+        title: '查新数量',
+        field: 'rdCnt',
+        width: '80',
+        slots: { default: 'childTable' },
+        childProp: 'list',
+        childCol: [
+          { title: '序号', type: 'seq', width: '60' },
+          { title: '项目编号', field: 'rdTitle', width: '160' },
+          { title: '项目名称', field: 'pname', width: '240' }
+        ]
+      },
       { title: '技术人员', field: 'techName', width: '100', sortable: true },
       { title: '分公司总经理', field: 'ownerMangerName', width: '140', sortable: true },
       { title: '财务经理', field: 'finaManagerName', width: '100', sortable: true },
@@ -189,20 +76,76 @@ export default {
       { title: '创建时间', field: 'createTime', width: '160', align: 'center' },
       { title: '最后修改时间', field: 'lastUpdateTime', width: '160', align: 'center' }
     ]
+    const items = [
+      { component: 'Input', field: 'companyName', label: '客户名称', props: { placeholder: '请输入客户名称' } },
+      { component: 'YearSelect', field: 'year', label: '年份', props: { placeholder: '请选择项目年份' } },
+      {
+        component: 'SearchSelect',
+        field: 'ownerId',
+        label: '业务员',
+        props: {
+          placeholder: '请输入业务员选择',
+          url: '/user/userForSelect',
+          searchField: 'realName',
+          sTitle: 'realName',
+          multiple: false
+        }
+      },
+      { component: 'Input', field: 'auditUsers', label: '当前处理人', props: { placeholder: '请输入当前处理人' } },
+      {
+        component: 'Select',
+        field: 'nodeNumber',
+        label: '节点',
+        props: { placeholder: '请选择节点', options: processType, allowClear: true }
+      },
+      {
+        component: 'Select',
+        field: 'status',
+        label: '流程状态',
+        props: {
+          placeholder: '请选择流程状态',
+          options: Object.keys(statusMap).map((k) => ({ value: +k, label: statusMap[k] })),
+          allowClear: true
+        }
+      },
+      {
+        component: 'SearchSelect',
+        field: 'techId',
+        label: '技术人员',
+        props: {
+          placeholder: '请输入技术人员',
+          url: '/user/userForSelect',
+          searchField: 'realName',
+          sTitle: 'realName',
+          multiple: false
+        }
+      },
+      {
+        component: 'SearchSelect',
+        field: 'finaManagerId',
+        label: '财务经理',
+        props: {
+          placeholder: '请输入财务经理',
+          url: '/user/userForSelect',
+          searchField: 'realName',
+          sTitle: 'realName',
+          multiple: false
+        }
+      }
+    ]
     return {
-      statusMap,
-      statusColor,
-      processType,
-      form: {},
+      items,
       columns,
-      selectedRowKeys: []
+      control: {
+        search: this.$auth('innovation:checkPayment:search'),
+        add: this.$auth('innovation:checkPayment:add'),
+        del: this.$auth('innovation:checkPayment:del'),
+        edit: this.$auth('innovation:checkPayment:edit'),
+        check: this.$auth('innovation:checkPayment:check')
+      }
     }
   },
   methods: {
-    getStatusName,
-    refresh(flag = false) {
-      this.$refs.xTable.refresh(flag)
-    },
     preview(filePath, filename) {
       if (filePath === '') {
         this.$message.info('请先上传文件')
@@ -210,34 +153,16 @@ export default {
       }
       this.$refs.PreviewModal.show(filePath, filename)
     },
-    selectChangeEvent({ records }) {
-      this.selectedRowKeys = records.map((item) => {
-        return item.id
+    wrapper(values) {
+      _.forIn(values, (v, k) => {
+        if ((k === 'ownerId' || k === 'techId' || k === 'finaManagerId') && v) {
+          values[k] = v.id
+        }
       })
+      return values
     },
-    selectAllEvent({ records }) {
-      this.selectedRowKeys = records.map((item) => {
-        return item.id
-      })
-    },
-    delContract() {
-      this.$http
-        .post('/checkPayment/delCheckPayment', { ids: this.selectedRowKeys })
-        .then(({ success, errorMessage }) => {
-          if (success) {
-            this.$message.success('删除成功')
-            this.refresh()
-          } else {
-            this.$message.error(errorMessage)
-          }
-        })
-    },
-    getParams() {
-      const params = Object.assign({}, this.form)
-      params.ownerId = params.ownerId ? params.ownerId.id : undefined
-      params.techId = params.techId ? params.techId.id : undefined
-      params.finaManagerId = params.finaManagerId ? params.finaManagerId.id : undefined
-      return params
+    add() {
+      this.$refs.CheckPaymentDrawer.open()
     }
   }
 }

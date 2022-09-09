@@ -77,6 +77,7 @@
           </a-col>
           <a-col :span="24">
             <a-form-item
+              class="textarea"
               label="权利要求内容"
               :help="()=>{if(!inputRequired)return; const r = form.getFieldValue('claimContent'); return `(${!r? 0 : r.length > 3000 ? 3000 : r.length}/3000)`}">
               <div v-if="!inputRequired">{{ patentPlan.claimContent || '-' }}</div>
@@ -91,6 +92,7 @@
           </a-col>
           <a-col :span="24">
             <a-form-item
+              class="textarea"
               label="说明书内容"
               :help="()=>{if(!inputRequired)return; const r = form.getFieldValue('specification'); return `(${!r? 0 : r.length > 2000 ? 2000 : r.length}/2000)`}">
               <div v-if="!inputRequired">{{ patentPlan.specification || '-' }}</div>
@@ -342,3 +344,6 @@ export default {
   }
 }
 </script>
+<style lang="less" scoped>
+
+</style>

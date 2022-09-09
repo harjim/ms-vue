@@ -49,7 +49,7 @@
             <div class="error-modal-list">
               <div class="error-modal-item" v-for="(item,index) in errorList" :key="index">
                 <div class="error-modal-item-label">{{ index +1 }}.流程设计</div>
-                <div class="error-modal-item-content">{{ item.name }} 未选择{{ item.type }}</div>
+                <div class="error-modal-item-content">{{ item.name }} {{ item.type === '条件' ? '未选择' : '未设置' }}{{ item.type }}</div>
               </div>
             </div>
           </div>
@@ -211,7 +211,7 @@ export default {
     analysisFlowData (childNode, returnData, isAddFlowId) {
       if (!Array.isArray(childNode)) {
         const nodeObj = {}
-        nodeObj['type'] = childNode.type === 999 ? 3 : childNode.type
+        nodeObj['type'] = [999].includes(childNode.type) ? 3 : childNode.type
         nodeObj['nodeName'] = childNode.nodeName
         nodeObj['nodeNumber'] = childNode.nodeNumber
         nodeObj['nodeExpired'] = childNode.nodeExpired
@@ -226,7 +226,7 @@ export default {
         if (childNode.childNode) {
           this.analysisFlowData(childNode.childNode, returnData, isAddFlowId)
         }
-        if (childNode.conditionNodes && childNode.type === 999) {
+        if (childNode.conditionNodes && [999, 3, 4].includes(childNode.type)) {
           const ary = []
           nodeObj['list'] = ary
           this.analysisFlowData(childNode.conditionNodes, ary, false)
@@ -235,10 +235,10 @@ export default {
         childNode.forEach((item, index) => {
           if (item.childNode) {
             const ary = []
-            returnData.push({ seq: index, nodeId: item.nodeId, branchId: item.branchId, flowId: item.flowId, condition: item.condition ? item.condition.join(',') : undefined, newFlow: ary, type: item.type, newFlowName: item.nodeName })
+            returnData.push({ seq: index, nodeId: item.nodeId, branchId: item.branchId, flowId: item.flowId, condition: item.condition ? item.condition.join(',') : undefined, newFlow: ary, type: item.type, newFlowName: item.nodeName, nodeName: item.nodeName })
             this.analysisFlowData(item.childNode, ary, isAddFlowId)
           } else {
-            returnData.push({ seq: index, nodeId: item.nodeId, branchId: item.branchId, flowId: item.flowId, condition: item.condition ? item.condition.join(',') : undefined, type: item.type, newFlowName: item.nodeName, newFlow: undefined })
+            returnData.push({ seq: index, nodeId: item.nodeId, branchId: item.branchId, flowId: item.flowId, condition: item.condition ? item.condition.join(',') : undefined, type: item.type, newFlowName: item.nodeName, nodeName: item.nodeName, newFlow: undefined })
           }
         })
       }
@@ -257,12 +257,12 @@ export default {
           item.list.forEach(l => {
             const node = { }
             Object.assign(node, l)
-            node['type'] = 3
+            node['type'] = item.type
             if (node.condition) {
               node['condition'] = node.condition.split(',')
             }
-            node['newFlowName'] = '条件' + (l.seq * 1 + 1)
-            node['nodeName'] = '条件' + (l.seq * 1 + 1)
+            node['newFlowName'] = node['newFlowName'] || node['nodeName'] || (item.type === 3 ? '条件' + (l.seq * 1 + 1) : '分支' + (l.seq * 1 + 1))
+            node['nodeName'] = node['newFlowName']
             if (l.newFlow && l.newFlow.length) {
               conditionNodes.push(this.recoverTreeData(l.newFlow, node, 0, l.newFlow.length - 1))
             } else {
@@ -296,8 +296,18 @@ export default {
             if (data.childNode.conditionNodes[i].error) {
               this.errorList.push({ name: data.childNode.conditionNodes[i].nodeName, type: '条件' })
             }
+            // if (!(data.childNode.conditionNodes[i].childNode && !data.childNode.conditionNodes[i].childNode.length)) {
+            //   this.errorList.push({ name: data.childNode.conditionNodes[i].nodeName, type: '流程' })
+            // }
             this.reErr(data.childNode.conditionNodes[i])
           }
+        } else if (data.childNode.type === 4) {
+          // this.reErr(data.childNode)
+          // for (let i = 0; i < data.childNode.conditionNodes.length; i++) {
+          //   if (!(data.childNode.conditionNodes[i].childNode && !data.childNode.conditionNodes[i].childNode.length)) {
+          //     this.errorList.push({ name: data.childNode.conditionNodes[i].nodeName, type: '流程' })
+          //   }
+          // }
         }
       } else {
         data.childNode = null

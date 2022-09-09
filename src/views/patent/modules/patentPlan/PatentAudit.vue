@@ -10,7 +10,9 @@
 <template>
   <a-card v-if="[0,1].includes(currentStep) && auditPermission" title="审批" size="small" style="margin-top: 16px;">
     <a-form :form="form">
-      <a-form-item :help="()=>{const r = form.getFieldValue('suggestion'); return `(${!r? 0 : r.length > 100 ? 100 : r.length}/100)`}">
+      <a-form-item
+        class="textarea"
+        :help="()=>{const r = form.getFieldValue('suggestion'); return `(${!r? 0 : r.length > 100 ? 100 : r.length}/100)`}">
         <a-textarea v-decorator="['suggestion', {rules: [{required: false, message: '请输入审批意见'}]}]" placeholder="请输入审批意见" :rows="4" :maxLength="100">
         </a-textarea>
       </a-form-item>

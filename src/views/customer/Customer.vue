@@ -248,7 +248,7 @@
             <a-divider type="vertical" v-if="$auth('customer:all:changeName')" />
           </span>
           <span v-if="$auth('customer:all:changeName')">
-            <a @click="$refs.changeName.open(row.companyName, row.id)">变更名称</a>
+            <a @click="$refs.changeName.open(row.companyName, row.companyId, row.id)">变更名称</a>
             <a-divider type="vertical" v-if="row.companyId != 0 && $auth('customer:all:sonCustomer')" />
           </span>
           <span v-if="row.companyId != 0 && $auth('customer:all:platformAccount')">

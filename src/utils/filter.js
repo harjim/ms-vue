@@ -20,6 +20,14 @@ Vue.filter('NumberFormat', function (value) {
   return intPartFormat
 })
 
+Vue.filter('NumberFormatHasNull', function (value) {
+  if (!(value !== null && /^[0-9]+.?[0-9]*/.test(value))) {
+    return '--'
+  }
+  const intPartFormat = (+value).toFixed(2).toString().replace(/\d(?=(?:\d{3})+\b)/g, '$&,') // 将整数部分逢三一断
+  return intPartFormat
+})
+
 Vue.filter('dayjs', function (dataStr, pattern = 'YYYY-MM-DD HH:mm:ss') {
   return moment(dataStr).format(pattern)
 })

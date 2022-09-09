@@ -33,7 +33,7 @@
         </a-col>
       </a-row>
       <a-row>
-        <a-form-item :help="()=>{const r = form.getFieldValue('suggestion'); return `(${!r? 0 : r.length > 100 ? 100 : r.length}/100)`}">
+        <a-form-item class="textarea" :help="()=>{const r = form.getFieldValue('suggestion'); return `(${!r? 0 : r.length > 100 ? 100 : r.length}/100)`}">
           <a-textarea v-decorator="['suggestion', {rules: [{required: true, message: '请输入定稿说明'}]}]" placeholder="请输入定稿说明" :rows="4" :maxLength="100">
           </a-textarea>
         </a-form-item>

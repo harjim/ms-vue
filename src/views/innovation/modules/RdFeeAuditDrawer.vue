@@ -83,7 +83,8 @@ export default {
       spin: false,
       isFullscreen: false,
       isEnabledFullscreen: false,
-      auditCnts: {}
+      auditCnts: {},
+      closeFresh: false
     }
   },
   watch: {
@@ -116,7 +117,10 @@ export default {
       this.visible = true
       this.loadAuditCnt()
     },
-    loadAuditCnt () {
+    loadAuditCnt (refresh) {
+      if (refresh) {
+        this.closeFresh = refresh
+      }
       this.spin = true
       this.$http.get('/rdFeeAudit/getAuditCnt', { params: this.queryParams }).then(res => {
         let auditCnts = {}
@@ -134,6 +138,10 @@ export default {
       this.activeKey = k
     },
     onClose () {
+      if (this.closeFresh) {
+        this.$emit('ok')
+      }
+      this.closeFresh = false
       this.width = 1184
       this.visible = false
       this.isFullscreen = false

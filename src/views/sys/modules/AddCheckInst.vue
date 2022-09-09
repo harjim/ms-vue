@@ -278,12 +278,7 @@ export default {
       this.fileList = []
     },
     handleChange (v, i, k) {
-      const newData = [...this.form.list]
-      newData[i][k] = v
-      this.form = {
-        ...this.form,
-        list: newData
-      }
+      this.form.list[i][k] = v
     },
     minCheck (i) {
       if (i === 0) return 1

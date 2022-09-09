@@ -1,7 +1,7 @@
 <!--
  * @Author: ldx
  * @Date: 2021-01-22 14:20:08
- * @LastEditTime: 2021-10-15 14:01:59
+ * @LastEditTime: 2022-08-08 14:40:27
  * @LastEditors: zdf
  * @Description: 研发花名册审核Tab
  * @FilePath: \MS-VUE\src\views\customer\modules\AuditProgress\modules\EmployeeTab.vue
@@ -49,23 +49,7 @@
 import TabLayout from './TabLayout'
 import ystable from '@/components/Table/ystable'
 import AuditLog from './AuditLog'
-const eTypeMap = { '-1': '-', '1': '研究人员', '2': '技术人员', '3': '辅助人员' }
-const column = [
-  { type: 'seq', title: '序号', width: 60, headerAlign: 'center', align: 'center' },
-  { field: 'enumber', title: '工号', width: 100, headerAlign: 'center', align: 'left' },
-  { field: 'ename', title: '姓名', width: 120, headerAlign: 'center', align: 'left' },
-  { field: 'etype',
-    title: '人员类型',
-    width: 120,
-    headerAlign: 'center',
-    align: 'left',
-    formatter: ({ cellValue }) => {
-      return eTypeMap[cellValue]
-    } },
-  { field: 'hasBind', title: '绑定', width: 80, headerAlign: 'center', align: 'center', remoteSort: true },
-  { field: 'deptName', title: '研发部门', headerAlign: 'center', align: 'left' },
-  { field: 'specialities', title: '专业', headerAlign: 'center', align: 'left' }
-]
+// const column =
 export default {
   name: 'EmployeeTab',
   components: {
@@ -93,7 +77,22 @@ export default {
   },
   data () {
     return {
-      column,
+      column: [
+        { type: 'seq', title: '序号', width: 60, headerAlign: 'center', align: 'center' },
+        { field: 'enumber', title: '工号', width: 100, headerAlign: 'center', align: 'left' },
+        { field: 'ename', title: '姓名', width: 120, headerAlign: 'center', align: 'left' },
+        { field: 'etype',
+          title: '人员类型',
+          width: 120,
+          headerAlign: 'center',
+          align: 'left',
+          formatter: ({ cellValue }) => {
+            return cellValue && cellValue !== -1 ? this.$getEnums('rdEmployeeEnum').find(item => item.value === cellValue).label : '-'
+          } },
+        { field: 'hasBind', title: '绑定', width: 80, headerAlign: 'center', align: 'center', remoteSort: true },
+        { field: 'deptName', title: '研发部门', headerAlign: 'center', align: 'left' },
+        { field: 'specialities', title: '专业', headerAlign: 'center', align: 'left' }
+      ],
       btnLoading: false,
       headerInfo: {
         researchCnt: '-',

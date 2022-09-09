@@ -1,3 +1,5 @@
+import store from '@/store/index'
+
 /*
  * @Author: zdf
  * @Date: 2022-04-26 17:00:18
@@ -25,8 +27,10 @@ function toBit (v, bit) {
   // }
   return (Math.round(v * div) / div).toFixed(b).toString().replace(/\d(?=(?:\d{3})+\b)/g, '$&,')
 }
-const employeeTypeMap = { 1: '研究人员', 2: '技术人员', 3: '辅助人员' }
-const equipmentTypeMap = { 30000: '设备', 30100: '仪器' }
+// const employeeTypeMap = { 1: '研究人员', 2: '技术人员', 3: '辅助人员' }
+const employeeTypeMap = store.state.enums.rdEmployeeEnum
+// const equipmentTypeMap = { 30000: '设备', 30100: '仪器' }
+const equipmentTypeMap = store.state.enums.equipmentEnum
 const InspectiontypeMap = {
   '20500': '检测',
   '20600': '修理',
@@ -65,7 +69,7 @@ const employeeCols = [
     width: 100,
     remoteSort: true,
     showHeaderOverflow: true,
-    formatter: ({ cellValue }) => employeeTypeMap[cellValue]
+    formatter: ({ cellValue }) => cellValue && cellValue !== -1 ? employeeTypeMap.find(item => item.value === Number(cellValue)).label : ''
   },
   {
     title: '总工时',
@@ -79,14 +83,16 @@ const employeeCols = [
     field: 'pay',
     align: 'right',
     width: 120,
-    showHeaderOverflow: true
+    showHeaderOverflow: true,
+    formatter: ({ cellValue }) => NumberFormatHasNull(cellValue)
   },
   {
     title: '五险一金',
     field: 'insuranceFund',
     align: 'right',
     width: 120,
-    showHeaderOverflow: true
+    showHeaderOverflow: true,
+    formatter: ({ cellValue }) => NumberFormatHasNull(cellValue)
   },
   {
     title: '研发工时',
@@ -101,14 +107,16 @@ const employeeCols = [
     field: 'rdPay',
     align: 'right',
     width: 120,
-    showHeaderOverflow: true
+    showHeaderOverflow: true,
+    formatter: ({ cellValue }) => NumberFormatHasNull(cellValue)
   },
   {
     title: '研发五险一金',
     field: 'rdInsuranceFund',
     align: 'right',
     width: 130,
-    showHeaderOverflow: true
+    showHeaderOverflow: true,
+    formatter: ({ cellValue }) => NumberFormatHasNull(cellValue)
   },
   {
     title: '研发合计',
@@ -143,7 +151,7 @@ const equipmentCols = [
     width: 120,
     remoteSort: true,
     showHeaderOverflow: true,
-    formatter: ({ cellValue }) => equipmentTypeMap[cellValue]
+    formatter: ({ cellValue }) => cellValue ? equipmentTypeMap.find(item => item.value === Number(cellValue)).label : ''
   },
   {
     title: '运行工时',
@@ -202,7 +210,8 @@ const materialCols = [
     field: 'unitPrice',
     align: 'right',
     width: 100,
-    showHeaderOverflow: true
+    showHeaderOverflow: true,
+    formatter: ({ cellValue }) => NumberFormatHasNull(cellValue)
   },
   {
     title: '数量',
@@ -223,7 +232,8 @@ const materialCols = [
     field: 'totalAmount',
     align: 'right',
     width: 100,
-    showHeaderOverflow: true
+    showHeaderOverflow: true,
+    formatter: ({ cellValue }) => NumberFormatHasNull(cellValue)
   },
   {
     title: '研发数量',
@@ -237,7 +247,8 @@ const materialCols = [
     field: 'rdAmount',
     align: 'right',
     width: 110,
-    showHeaderOverflow: true
+    showHeaderOverflow: true,
+    formatter: ({ cellValue }) => NumberFormatHasNull(cellValue)
   }
 ]
 const energyCols = [
@@ -289,14 +300,16 @@ const energyCols = [
     field: 'totalAmount',
     align: 'right',
     width: 120,
-    showHeaderOverflow: true
+    showHeaderOverflow: true,
+    formatter: ({ cellValue }) => NumberFormatHasNull(cellValue)
   },
   {
     title: '分配金额',
     field: 'amount',
     align: 'right',
     width: 120,
-    showHeaderOverflow: true
+    showHeaderOverflow: true,
+    formatter: ({ cellValue }) => NumberFormatHasNull(cellValue)
   },
   {
     title: '研发数量',
@@ -310,7 +323,8 @@ const energyCols = [
     field: 'rdAmount',
     align: 'right',
     width: 110,
-    showHeaderOverflow: true
+    showHeaderOverflow: true,
+    formatter: ({ cellValue }) => NumberFormatHasNull(cellValue)
   }
 ]
 const equipmentPowerCols = [
@@ -337,7 +351,7 @@ const equipmentPowerCols = [
     width: 120,
     remoteSort: true,
     showHeaderOverflow: true,
-    formatter: ({ cellValue }) => equipmentTypeMap[cellValue]
+    formatter: ({ cellValue }) => cellValue ? equipmentTypeMap.find(item => item.value === Number(cellValue)).label : ''
   },
   {
     title: '研发工时',
@@ -358,14 +372,16 @@ const equipmentPowerCols = [
     field: 'powerUnitPrice',
     align: 'right',
     width: 110,
-    showHeaderOverflow: true
+    showHeaderOverflow: true,
+    formatter: ({ cellValue }) => NumberFormatHasNull(cellValue)
   },
   {
     title: '研发电费',
     field: 'powerRate',
     align: 'right',
     width: 120,
-    showHeaderOverflow: true
+    showHeaderOverflow: true,
+    formatter: ({ cellValue }) => NumberFormatHasNull(cellValue)
   }
 ]
 const designCols = [
@@ -389,14 +405,16 @@ const designCols = [
     field: 'dFee',
     align: 'right',
     width: 130,
-    showHeaderOverflow: true
+    showHeaderOverflow: true,
+    formatter: ({ cellValue }) => NumberFormatHasNull(cellValue)
   },
   {
     title: '研发费用',
     field: 'rdAmount',
     align: 'right',
     width: 130,
-    showHeaderOverflow: true
+    showHeaderOverflow: true,
+    formatter: ({ cellValue }) => NumberFormatHasNull(cellValue)
   }
 ]
 const inspectionCols = [
@@ -435,17 +453,25 @@ const inspectionCols = [
     field: 'expense',
     align: 'right',
     width: 130,
-    showHeaderOverflow: true
+    showHeaderOverflow: true,
+    formatter: ({ cellValue }) => NumberFormatHasNull(cellValue)
   },
   {
     title: '研发费用',
     field: 'rdAmount',
     align: 'right',
     width: 130,
-    showHeaderOverflow: true
+    showHeaderOverflow: true,
+    formatter: ({ cellValue }) => NumberFormatHasNull(cellValue)
   }
 ]
-
+const NumberFormatHasNull = (value) => {
+  if (!(value !== null && /^[0-9]+.?[0-9]*/.test(value))) {
+    return '--'
+  }
+  const intPartFormat = (+value).toFixed(2).toString().replace(/\d(?=(?:\d{3})+\b)/g, '$&,') // 将整数部分逢三一断
+  return intPartFormat
+}
 const config = {
   employee: { columns: employeeCols, url: '/rdFeeAudit/getEmployeeFees' },
   equipment: { columns: equipmentCols, url: '/rdFeeAudit/getEquipmentFees' },
@@ -483,7 +509,7 @@ const rdTypeMap = {
 }
 const auditCostTypes = [
   { rdType: 10000, title: '人员费用', children: [10000, 10100] },
-  { rdType: 30000, title: '设备折旧', children: [30000, 30100] },
+  { rdType: 30000, title: '设备折旧', children: [30000, 30100, 30200] },
   { rdType: 20000, title: '研发材料', children: [20000, 20001, 20002], tabs: { 20000: '研发材料', 20001: '造纸材料', 20002: '流程型' } },
   { rdType: 20300, title: '中间试制', children: [20301, 20303, 20304, 20302, 20300], tabs: { 20301: '试制材料', 20303: '造纸试制', 20304: '流程型', 20302: '试制动力', 20300: '其他试制' } },
   { rdType: 20600, title: '修理费用', children: [20601, 20600], tabs: { 20601: '修理材料', 20600: '凭证费用' } },
@@ -514,7 +540,7 @@ function getConfigParams (projectId, rdType) {
       rdTypes = [60000, 60100, 60200, 60300, 69900]
       break
     case 30000:
-      rdTypes = [30000, 30100]
+      rdTypes = [30000, 30100, 30200]
       break
     default:
       rdTypes = [rdType]

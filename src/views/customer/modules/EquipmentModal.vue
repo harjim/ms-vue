@@ -70,7 +70,7 @@
           <vxe-table-column field="ename" title="设备名称" width="100" fixed="left" remoteSort />
           <vxe-table-column field="emodal" title="设备型号" width="100" remoteSort />
           <vxe-table-column field="etype" title="设备类型" width="100" align="center" remoteSort>
-            <template v-slot="{ row }">{{ row.etype !== null ? etypes[row.etype]: '普通' }}</template>
+            <template v-slot="{ row }">{{ row.etype ? $getEnums('equipmentEnum').find(item => item.value === Number(row.etype)).label: '' }}</template>
           </vxe-table-column>
           <vxe-table-column field="rdDeptName" title="研发部门" width="100"></vxe-table-column>
           <vxe-table-column field="entryDate" title="加入日期" width="100" align="center" remoteSort></vxe-table-column>
@@ -88,7 +88,6 @@
 
 <script>
 import ystable from '@/components/Table/ystable'
-const etypes = { '30000': '设备', '30100': '仪器', '40001': '软件摊销' }
 
 export default {
   name: 'MemberTab',
@@ -105,7 +104,6 @@ export default {
     return {
       visible: false,
       title: '',
-      etypes,
       spinning: false,
       selectedRowKeys: [],
       selectedRowIds: [],

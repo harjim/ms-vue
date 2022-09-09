@@ -1,3 +1,4 @@
+import store from '@/store/index'
 import { exportServe } from '@/utils/request'
 import * as dd from 'dingtalk-jsapi'
 import moment from 'moment'
@@ -97,6 +98,7 @@ const myPlugin = {
         { value: 101, title: '五险一金', type: 10100 },
         { value: 300, title: '设备折旧', type: 30000 },
         { value: 301, title: '仪器折旧', type: 30100 },
+        { value: 302, title: '房屋建筑', type: 30200 },
         { value: 200, title: '材料', type: 20000 },
         { value: 201, title: '动力', type: 20100 },
         { value: 202, title: '燃料', type: 20200 },
@@ -206,7 +208,7 @@ const myPlugin = {
         if (typeof data[key] !== 'undefined') {
           if (Number.isFinite(data[key])) {
             fieldsVal[key] = data[key].toString()
-          } else if (dateKeys && dateKeys.includes(key)) {
+          } else if (dateKeys && dateKeys.includes(key) && data[key]) {
             fieldsVal[key] = moment(data[key], 'YYYY-MM-DD HH:mm:ss')
           } else {
             fieldsVal[key] = data[key]
@@ -330,6 +332,9 @@ const myPlugin = {
       }).finally(() => {
         self.spinning = false
       })
+    }
+    Vue.prototype.$getEnums = (enumName) => {
+      return store.state.enums[enumName]
     }
   }
 }

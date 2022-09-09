@@ -51,7 +51,7 @@
               :disabled="isCreat"
               style="width: 210px"
               format="YYYY-MM-DD"
-              v-decorator="['applyDateTime', {rules:[{required: true, message: '请选择申请日期'}]}]"
+              v-decorator="['applyDateTime', {rules:[{required: !isCreat, message: '请选择申请日期'}]}]"
             />
           </a-form-item>
         </a-col>

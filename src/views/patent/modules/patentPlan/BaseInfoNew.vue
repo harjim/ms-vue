@@ -329,14 +329,16 @@
             </a-form-item>
           </a-col>
           <a-col :span="24">
-            <a-form-item label="备注" :help="()=>{if(!canEdit && !editBase)return; const r = form.getFieldValue('remark'); return `(${!r? 0 : r.length > 100 ? 100 : r.length}/100)`}">
+            <a-form-item class="textarea" label="备注" :help="()=>{if(!canEdit && !editBase)return; const r = form.getFieldValue('remark'); return `(${!r? 0 : r.length > 100 ? 100 : r.length}/100)`}">
               <a-textarea v-if="canEdit || editBase" v-decorator="['remark']" placeholder="请输入备注" :maxLength="100" :rows="3" />
               <div v-else>{{ record.remark || '-' }}</div>
             </a-form-item>
           </a-col>
           <a-col :span="24" style="text-align:right;">
-            <a-button v-if="canEdit || editBase" style="margin-right:8px;" type="primary" @click="save()">暂存</a-button>
-            <a-button v-if="canEdit" type="primary" @click="onSubmit()">提交</a-button>
+            <a-form-item>
+              <a-button v-if="canEdit || editBase" style="margin-right:8px;" type="primary" @click="save()">暂存</a-button>
+              <a-button v-if="canEdit" type="primary" @click="onSubmit()">提交</a-button>
+            </a-form-item>
           </a-col>
         </a-row>
       </div>
@@ -655,4 +657,10 @@ export default {
   background-color: #fff;
   box-shadow: 0 0 6px 2px rgba(0, 0, 0, 0.1);
 }
+// /deep/ .ant-col:nth-last-child(2) {
+//   // margin-top: 20px;
+//   .ant-form-item-control-wrapper {
+//   height: auto !important;
+// }
+// }
 </style>

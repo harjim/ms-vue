@@ -802,9 +802,16 @@ small {
 }
 
 @font-face {
-    font-family: IconFont;
-    src: url("//at.alicdn.com/t/font_135284_ph2thxxbzgf.eot");
-    src: url("//at.alicdn.com/t/font_135284_ph2thxxbzgf.eot?#iefix") format("embedded-opentype"), url("//at.alicdn.com/t/font_135284_ph2thxxbzgf.woff") format("woff"), url("//at.alicdn.com/t/font_135284_ph2thxxbzgf.ttf") format("truetype"), url("//at.alicdn.com/t/font_135284_ph2thxxbzgf.svg#IconFont") format("svg")
+  font-family: IconFont;
+  /* src: url("//at.alicdn.com/t/font_135284_ph2thxxbzgf.eot");
+  src: url("//at.alicdn.com/t/font_135284_ph2thxxbzgf.eot?#iefix") format("embedded-opentype"), 
+    url("//at.alicdn.com/t/font_135284_ph2thxxbzgf.woff") format("woff"), 
+    url("//at.alicdn.com/t/font_135284_ph2thxxbzgf.ttf") format("truetype"), 
+    url("//at.alicdn.com/t/font_135284_ph2thxxbzgf.svg#IconFont") format("svg"); */
+  src: url('iconfont.woff2?t=1660270721297') format('woff2'),
+  url('iconfont.woff?t=1660270721297') format('woff'),
+  url('iconfont.ttf?t=1660270721297') format('truetype');
+  
 }
 
 .iconfont {
@@ -4195,14 +4202,18 @@ html.wf-cursor-move * {
     border-bottom: 1px dashed #fff
 }
 
-.auto-judge:hover .editable-title.editing,
-.node-wrap-box:hover .editable-title.editing {
+.auto-judge:hover .editable-title .editing,
+.node-wrap-box:hover .editable-title .editing {
     text-decoration: none;
     border: 1px solid #d9d9d9
 }
 
-.auto-judge:hover .editable-title {
+.auto-judge:hover .editable-title-3 {
     border-color: #15bc83
+}
+
+.auto-judge:hover .editable-title-4 {
+    border-color: #9a00f7
 }
 
 .editable-title {
@@ -4908,6 +4919,9 @@ html.wf-cursor-move * {
 .add-node-popover-item.condition .item-wrapper {
     color: #15bc83
 }
+.add-node-popover-item.parallelBranches .item-wrapper {
+    color: #9a00f7
+}
 
 .add-node-popover-item.auto .item-wrapper {
     color: #1059fb
@@ -5558,10 +5572,19 @@ html.wf-cursor-move * {
     box-shadow: 0 2px 5px 0 rgba(0, 0, 0, .1)
 }
 
+.dingflow-design .auto-judge .title-wrapper-3 {
+  color: #15bc83;
+
+}
+
+.dingflow-design .auto-judge .title-wrapper-4 {
+  color: #9a00f7;
+
+}
+
 .dingflow-design .auto-judge .title-wrapper {
     position: relative;
     font-size: 12px;
-    color: #15bc83;
     text-align: left;
     line-height: 16px
 }

@@ -74,7 +74,6 @@
     </a-form>
     <ystable
       ref="table"
-      rowId="id"
       @completed="()=>selectRowIds=[]"
       @checkbox-change="selectChange"
       @checkbox-all="selectChange"

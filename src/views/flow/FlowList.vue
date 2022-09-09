@@ -2,7 +2,7 @@
  * @Author: your name
  * @Date: 2022-03-16 11:02:51
  * @LastEditors: zdf
- * @LastEditTime: 2022-04-07 18:15:18
+ * @LastEditTime: 2022-08-23 10:55:24
  * @Description: 流程列表
  * @FilePath: \MS-VUE\src\views\flow\FlowList.vue
 -->
@@ -113,6 +113,7 @@ export default {
         { title: '发起人', field: 'lastSubmiter', width: 200, align: 'center', remoteSort: true },
         { title: '当前处理人', field: 'auditUsers', width: 200, align: 'center', remoteSort: true },
         { title: '状态', field: 'status', width: 150, align: 'center', slots: { default: 'status' }, remoteSort: true },
+        { title: '当前节点数', field: 'nodeCnt', width: 100, align: 'right' },
         { title: '更新时间', field: 'lastUpdateTime', width: 200, align: 'center', remoteSort: true }
       ],
       showHead: false,

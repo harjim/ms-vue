@@ -64,7 +64,7 @@
                   <vxe-table-column title="职位" field="position" width="100"/>
                   <vxe-table-column title="人员类型" field="etype" width="100">
                     <template v-slot="{row}">
-                      {{ row.etype === -1 ? '' : mtypes[row.etype] }}
+                      {{ !row.etype || row.etype === -1 ? '' : $getEnums('rdEmployeeEnum').find(item => item.value === row.etype).label }}
                     </template>
                   </vxe-table-column>
                   <vxe-table-column title="研发部门" field="fullName" width="100"/>
@@ -96,7 +96,7 @@
                   <vxe-table-column title="设备名称" field="ename" fixed="left" width="100"/>
                   <vxe-table-column title="设备型号" field="emodal" width="100"/>
                   <vxe-table-column title="设备类型" field="etype" width="100">
-                    <template v-slot="{row}">{{ row.etype !== null ? etypes[row.etype]: '普通' }}</template>
+                    <template v-slot="{row}">{{ row.etype ? $getEnums('equipmentEnum').find(item => item.value === Number(row.etype)).label: '' }}</template>
                   </vxe-table-column>
                   <vxe-table-column title="研发部门" field="fullName" width="100"/>
                   <vxe-table-column title="加入日期" field="entryDate" width="100"/>
@@ -150,8 +150,6 @@ import AuditLog from './AuditLog'
 import TabLayout from './TabLayout.vue'
 import StageForm from './projectTabStageForm.vue'
 import ProjectCheckModal from './duplicate/ProjectCheckModal.vue'
-const mtypes = { '0': '普通员工', '1': '研究人员', '2': '技术人员', '3': '辅助人员' }
-const etypes = { '30000': '设备', '30100': '仪器', '40001': '软件摊销' }
 export default {
   name: 'ProjectTab',
   components: {
@@ -181,8 +179,6 @@ export default {
   },
   data () {
     return {
-      mtypes,
-      etypes,
       column: [
         { type: 'checkbox', width: 40, headerAlign: 'center', align: 'center' },
         { type: 'seq', title: '序号', width: 50, headerAlign: 'center', align: 'center', slots: { default: 'seqSlot' } },

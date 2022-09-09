@@ -75,7 +75,7 @@
         <vxe-table-column field="position" title="职位" width="100" remoteSort />
         <vxe-table-column field="etype" title="人员类型" width="110" align="center" remoteSort>
           <template v-slot="{ row }">
-            {{ row.etype != null ? etypes[row.etype] : '普通员工' }}
+            {{ !row.etype || row.etype === -1 ? '' : $getEnums('rdEmployeeEnum').find(item => item.value === row.etype).label }}
           </template>
         </vxe-table-column>
         <vxe-table-column field="deptName" title="研发部门" width="130"/>
@@ -97,7 +97,6 @@
 
 <script>
 import ystable from '@/components/Table/ystable'
-const etypes = { '1': '研究人员', '2': '技术人员', '3': '辅助人员' }
 
 export default {
   name: 'MemberTab',
@@ -114,7 +113,6 @@ export default {
     return {
       visible: false,
       title: '',
-      etypes,
       spinning: false,
       selectedRowKeys: [],
       selectedRowIds: [],

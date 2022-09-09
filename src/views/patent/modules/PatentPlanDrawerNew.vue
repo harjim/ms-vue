@@ -338,5 +338,8 @@ export default {
 /deep/ .ant-form-item-control{
   line-height: 24px;
 }
+/deep/ .textarea .ant-form-item-control-wrapper{
+  height: auto !important;
+}
 
 </style>

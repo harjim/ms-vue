@@ -9,7 +9,7 @@
   >
     <template slot="footer">
       <a-button key="back" @click="closeModal">
-        返回
+        关闭
       </a-button>
     </template>
     <ystable

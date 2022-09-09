@@ -16,7 +16,11 @@
     height="300px"
     size="small"
     :queryUrl="tableConfig.url"
-    :toolbar="{ refresh: {query: search}, zoom: true, custom: true }"></ystable>
+    :toolbar="{ refresh: {query: search}, zoom: true, custom: true }">
+    <template #buttons>
+      <slot name="detailTitle"></slot>
+    </template>
+  </ystable>
 </template>
 
 <script>

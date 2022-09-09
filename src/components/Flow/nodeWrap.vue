@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="node-wrap" v-if="nodeConfig.type!=999">
+    <div class="node-wrap" v-if="![999, 4].includes(nodeConfig.type)">
       <div class="node-wrap-box" :class="(nodeConfig.type==0 ? 'start-node ':'')+(isTried&&nodeConfig.error?'active error':'')">
         <div>
           <!-- 节点标题  -->
@@ -40,17 +40,20 @@
       </div>
       <addNode :childNode="nodeConfig" :childNodeP.sync="nodeConfig.childNode"></addNode>
     </div>
-    <div class="branch-wrap" v-if="nodeConfig.type==999">
-      <div class="branch-box-wrap">
+    <div class="branch-wrap" v-if="[999, 4].includes(nodeConfig.type)">
+      <div class="branch-box-wrap ">
         <div class="branch-box">
-          <button class="add-branch" @click="addTerm">添加条件</button>
+          <button class="add-branch" @click="addTerm">{{ nodeConfig.type === 999 ? '添加条件' : '添加分支' }}</button>
           <!-- <span v-else class="span-branch">条件分支</span> -->
           <div class="col-box" v-for="(item,index) in nodeConfig.conditionNodes" :key="index">
             <div class="condition-node">
               <div class="condition-node-box">
                 <div class="auto-judge" :class="item.error?'error active':''">
+                  <!-- 左移按钮 -->
+                  <!-- TODO: 原 !nodeConfig.nodeId， 未知 nodeId 含义 -->
                   <div class="sort-left" v-if="index!=0 && !nodeConfig.nodeId " @click="arrTransfer(index,-1)">&lt;</div>
-                  <div class="title-wrapper">
+                  <!-- title -->
+                  <div :class="type3 ? 'title-wrapper-3' : 'title-wrapper-4'" class="title-wrapper">
                     <input
                       type="text"
                       class="ant-input editable-title-input"
@@ -59,19 +62,30 @@
                       @focus="$event.currentTarget.select()"
                       v-focus
                       v-model="item.nodeName">
-                    <span v-if="!isInputList[index]">条件{{ item.seq+1 }}</span>
+                    <!-- <span @click="clickEvent(index)" v-if="!isInputList[index]">{{ nodeConfig.type === 999 ? '条件' : '分支' }}{{ item.seq+1 }}</span> -->
+                    <!-- :class="[item.childNode && item.childNode.length ? 'editable-title' : '', type3 ? 'editable-title-3' : 'editable-title-4']" -->
+                    <span
+                      @click="clickEvent(index, !!item.childNode)"
+                      :class="{'editable-title': item.childNode, 'editable-title-3': type3, 'editable-title-4': !type3}"
+                      v-if="!isInputList[index]">{{ item.nodeName }}</span>
+                    <!-- 删除按钮 -->
                     <i class="cIcon cIcon-close close" @click="delTerm(index)"></i>
                   </div>
+                  <!-- 右移按钮 -->
                   <div
                     class="sort-right"
                     v-if="index!=nodeConfig.conditionNodes.length-1 && !nodeConfig.nodeId"
                     @click="arrTransfer(index)">&gt;</div>
-                  <div class="content" @click="setPerson(index,true)">
-                    {{ nodeConfig.conditionNodes[index].condition ?setConditionStr(nodeConfig.conditionNodes,index): '请设置条件' }}
+                  <!-- 内容 -->
+                  <div class="content" @click="setPerson(index, true)">
+                    {{ nodeConfig.conditionNodes[index].condition ? setConditionStr(nodeConfig.conditionNodes,index) : nodeConfig.type === 999 ? '请设置条件' : '' }}
                   </div>
+                  <!-- 错误提示图标 -->
+                  <!--  || !(nodeConfig.conditionNodes[index].childNode && !nodeConfig.conditionNodes[index].childNode.length && nodeConfig.type === 4) 并行节点不为空 -->
                   <div class="error_tip" v-if="nodeConfig.conditionNodes[index].error">
                     <i class="cIcon cIcon-exclamation-circle" style="color: rgb(242, 86, 67);"></i>
                   </div>
+                  <!-- <span v-if="!nodeConfig.conditionNodes[index].childNode && nodeConfig.type === 4">当前分支无流程，发布后该分支将不会保存！</span> -->
                 </div>
                 <addNode :childNode="nodeConfig" :childNodeP.sync="item.childNode"></addNode>
               </div>
@@ -317,7 +331,7 @@
     </a-drawer>
     <!-- 条件抽屉 -->
     <a-drawer
-      title="条件设置"
+      :title="nodeConfig.type === 999 ? '条件设置' : '分支设置'"
       :visible.sync="conditionDrawer"
       placement="right"
       width="550px"
@@ -416,9 +430,14 @@ export default {
       this.setApproverStr(this.nodeConfig)
     } else if (this.nodeConfig.type === 2) {
       this.setApproverStr(this.nodeConfig)
-    } else if (this.nodeConfig.type === 999) {
+    } else if ([999, 4].includes(this.nodeConfig.type)) {
       for (let i = 0; i < this.nodeConfig.conditionNodes.length; i++) {
       }
+    }
+  },
+  computed: {
+    type3 () {
+      return [999, 3].includes(this.nodeConfig.type)
     }
   },
   methods: {
@@ -449,7 +468,10 @@ export default {
     addOrChangeUser () {
 
     },
-    clickEvent (index) {
+    clickEvent (index, change = true) {
+      if (!change) {
+        return
+      }
       if (index || index === 0) {
         this.$set(this.isInputList, index, true)
       } else {
@@ -460,7 +482,8 @@ export default {
     blurEvent (index) {
       if (index || index === 0) {
         this.$set(this.isInputList, index, false)
-        this.nodeConfig.conditionNodes[index].nodeName = this.nodeConfig.conditionNodes[index].nodeName ? this.nodeConfig.conditionNodes[index].nodeName : '条件'
+        this.nodeConfig.conditionNodes[index].nodeName = this.nodeConfig.conditionNodes[index].nodeName ? this.nodeConfig.conditionNodes[index].nodeName : `${[3, 999].includes(this.nodeConfig.type) ? '条件' : '分支'}${index + 1}`
+        this.nodeConfig.conditionNodes[index].newFlowName = this.nodeConfig.conditionNodes[index].nodeName
       } else {
         this.isInput = false
         this.nodeConfig.nodeName = this.nodeConfig.nodeName ? this.nodeConfig.nodeName : this.placeholderList[this.nodeConfig.type]
@@ -585,7 +608,7 @@ export default {
           }
           this.nodeConfig['userList'] = userList
         }
-        if (this.nodeConfig.type === 999) {
+        if ([999, 3].includes(this.nodeConfig.type)) {
           this.nodeConfig.conditionNodes[this.conditionIndex].condition = this.conditions[this.conditionIndex]
         }
         this.$emit('update:nodeConfig', this.nodeConfig)
@@ -632,44 +655,68 @@ export default {
       }
     },
     // TODO 不能删除时：1不显示删除图标和禁用点击事件；2.不能显示发布按钮
-    // TODO 有nodeId 不能编辑节点名称
+    // TODO 有nodeId 不能编辑节点名称 此处仅删除非分支节点
     // 删除节点
     delNode () {
-      this.$emit('update:nodeConfig', this.nodeConfig.childNode)
+      switch (this.nodeConfig.type) {
+        case 1:
+        case 2:
+          this.$emit('update:nodeConfig', this.nodeConfig.childNode)
+          break
+        case 3:
+        case 4:
+          // this.$emit('update:nodeConfig', this.nodeConfig.childNode)
+          break
+        default:
+          break
+      }
+      // this.$emit('update:nodeConfig', this.nodeConfig.childNode || this.nodeConfig.conditionNodes)
     },
     // 添加条件
     addTerm () {
       const len = this.nodeConfig.conditionNodes.length
+      const type3 = [3, 999].includes(this.nodeConfig.type)
       this.nodeConfig.conditionNodes.push({
-        'type': 3,
+        'type': this.nodeConfig.type !== 999 ? this.nodeConfig.type : 3,
         'seq': len,
-        'nodeName': `条件${len + 1}`,
-        'error': true,
+        'nodeName': `${type3 ? '条件' : '分支'}${len + 1}`,
+        'error': type3,
         'priorityLevel': len + 1,
         'conditionList': [],
         'nodeUserList': [],
         'condition': undefined,
         'childNode': null
       })
-      for (let i = 0; i < this.nodeConfig.conditionNodes.length; i++) {
-      }
+      // for (let i = 0; i < this.nodeConfig.conditionNodes.length; i++) {
+      // }
       this.$emit('update:nodeConfig', this.nodeConfig)
     },
     // 删除条件
+    // FIXME: 删除按钮
     delTerm (index) {
-      this.nodeConfig.conditionNodes.splice(index, 1)
-      for (let i = 0; i < this.nodeConfig.conditionNodes.length; i++) {
-      }
-      this.$emit('update:nodeConfig', this.nodeConfig)
+      // for (let i = 0; i < this.nodeConfig.conditionNodes.length; i++) {
+      // }
       if (this.nodeConfig.conditionNodes.length === 1) {
-        if (this.nodeConfig.childNode) {
-          if (this.nodeConfig.conditionNodes[0].childNode) {
-            this.reData(this.nodeConfig.conditionNodes[0].childNode, this.nodeConfig.childNode)
-          } else {
-            this.nodeConfig.conditionNodes[0].childNode = this.nodeConfig.childNode
-          }
+        // 当前只有一个分支
+        // if (this.nodeConfig.childNode) {
+        if (this.nodeConfig.conditionNodes[0].childNode) {
+          this.reData(this.nodeConfig.conditionNodes[0].childNode, this.nodeConfig.childNode)
+        } else {
+          this.nodeConfig.conditionNodes[0].childNode = this.nodeConfig.childNode
         }
         this.$emit('update:nodeConfig', this.nodeConfig.conditionNodes[0].childNode)
+        // }
+      } else {
+        // 当前存在多个分支
+        this.nodeConfig.conditionNodes.splice(index, 1)
+        this.nodeConfig.conditionNodes.forEach((elem, index) => {
+          if (elem.nodeName.includes('条件')) {
+            elem.nodeName = '条件' + (index + 1)
+          } else if (elem.nodeName.includes('分支')) {
+            elem.nodeName = '分支' + (index + 1)
+          }
+        })
+        this.$emit('update:nodeConfig', this.nodeConfig)
       }
     },
     reData (data, addData) {
@@ -681,68 +728,138 @@ export default {
     },
     // 打开抽屉设置人员
     setPerson (priorityLevel, isConditionNodes) {
-      const { type } = this.nodeConfig
-      if (type === 0) {
-      } else if (type === 1) { // 审核节点
-        this.auditTypeVal = this.nodeConfig.auditType ? this.nodeConfig.auditType : 0
-        this.auditRadioVal = this.nodeConfig.userType ? this.nodeConfig.userType : 0
-        const userList = []
-        if (this.nodeConfig.userList) {
-          this.nodeConfig.userList.forEach(item => {
+      // const { type } = this.nodeConfig
+      // if (type === 0) {
+      // } else if (type === 1) { // 审核节点
+      //   this.auditTypeVal = this.nodeConfig.auditType ? this.nodeConfig.auditType : 0
+      //   this.auditRadioVal = this.nodeConfig.userType ? this.nodeConfig.userType : 0
+      //   const userList = []
+      //   if (this.nodeConfig.userList) {
+      //     this.nodeConfig.userList.forEach(item => {
+      //       // userType 0人员 1角色 2主管
+      //       if (this.nodeConfig.userType === 0) {
+      //         userList.push({ id: item.dataId, deptId: null, realName: item.userName, userName: item.userName })
+      //       } else if (this.nodeConfig.userType === 1) {
+      //         userList.push({ id: item.dataId, roleName: item.userName })
+      //       } else if (this.nodeConfig.userType === 2) {
+      //         userList.push({ id: item.dataId, userName: item.userName })
+      //         this.selectVal = item.dataId
+      //       } else if (this.nodeConfig.userType === 3) {
+      //         this.level = item.level
+      //         userList.push({ id: item.dataId, roleName: item.userName })
+      //       } else if (this.nodeConfig.userType === 4) {
+      //         userList.push({ id: item.dataId, roleName: item.userName })
+      //       }
+      //     })
+      //   }
+      //   this.approverDrawer = true
+      //   this.$nextTick(() => {
+      //     this.postIds = userList
+      //     this.form.setFieldsValue({ nodeName: this.nodeConfig.nodeName })
+      //   })
+      // } else if (type === 2) {
+      //   this.auditTypeVal = this.nodeConfig.auditType ? this.nodeConfig.auditType : 0
+      //   this.auditRadioVal = this.nodeConfig.userType ? this.nodeConfig.userType : 0
+      //   const userList = []
+      //   if (this.nodeConfig.userList) {
+      //     this.nodeConfig.userList.forEach(item => {
+      //       // userType 0人员 1角色 2主管
+      //       if (this.nodeConfig.userType === 0) {
+      //         userList.push({ id: item.dataId, deptId: null, realName: item.userName, userName: item.userName })
+      //       } else if (this.nodeConfig.userType === 1) {
+      //         userList.push({ id: item.dataId, roleName: item.userName })
+      //       } else if (this.nodeConfig.userType === 2) {
+      //         userList.push({ id: item.dataId, userName: item.userName })
+      //         this.selectVal = item.dataId
+      //       } else if (this.nodeConfig.userType === 3) {
+      //         this.level = item.level
+      //         userList.push({ id: item.dataId, roleName: item.userName })
+      //       } else if (this.nodeConfig.userType === 4) {
+      //         userList.push({ id: item.dataId, roleName: item.userName })
+      //       }
+      //     })
+      //   }
+      //   this.copyerDrawer = true
+      //   this.$nextTick(() => {
+      //     this.postIds = userList
+      //   })
+      // } else {
+      //   // 是否显示分支抽屉
+      //   this.conditionDrawer = true
+      //   this.conditionIndex = priorityLevel
+      //   this.$nextTick(() => {
+      //     this.$set(this.conditions, this.conditionIndex, this.nodeConfig.conditionNodes[priorityLevel].condition ? this.nodeConfig.conditionNodes[priorityLevel].condition : [])
+      //   })
+      // }
+      const userList = []
+      switch (this.nodeConfig.type) {
+        case 1:
+          this.auditTypeVal = this.nodeConfig.auditType ? this.nodeConfig.auditType : 0
+          this.auditRadioVal = this.nodeConfig.userType ? this.nodeConfig.userType : 0
+
+          if (this.nodeConfig.userList) {
+            this.nodeConfig.userList.forEach(item => {
             // userType 0人员 1角色 2主管
-            if (this.nodeConfig.userType === 0) {
-              userList.push({ id: item.dataId, deptId: null, realName: item.userName, userName: item.userName })
-            } else if (this.nodeConfig.userType === 1) {
-              userList.push({ id: item.dataId, roleName: item.userName })
-            } else if (this.nodeConfig.userType === 2) {
-              userList.push({ id: item.dataId, userName: item.userName })
-              this.selectVal = item.dataId
-            } else if (this.nodeConfig.userType === 3) {
-              this.level = item.level
-              userList.push({ id: item.dataId, roleName: item.userName })
-            } else if (this.nodeConfig.userType === 4) {
-              userList.push({ id: item.dataId, roleName: item.userName })
-            }
+              if (this.nodeConfig.userType === 0) {
+                userList.push({ id: item.dataId, deptId: null, realName: item.userName, userName: item.userName })
+              } else if (this.nodeConfig.userType === 1) {
+                userList.push({ id: item.dataId, roleName: item.userName })
+              } else if (this.nodeConfig.userType === 2) {
+                userList.push({ id: item.dataId, userName: item.userName })
+                this.selectVal = item.dataId
+              } else if (this.nodeConfig.userType === 3) {
+                this.level = item.level
+                userList.push({ id: item.dataId, roleName: item.userName })
+              } else if (this.nodeConfig.userType === 4) {
+                userList.push({ id: item.dataId, roleName: item.userName })
+              }
+            })
+          }
+          this.approverDrawer = true
+          this.$nextTick(() => {
+            this.postIds = userList
+            this.form.setFieldsValue({ nodeName: this.nodeConfig.nodeName })
           })
-        }
-        this.approverDrawer = true
-        this.$nextTick(() => {
-          this.postIds = userList
-          this.form.setFieldsValue({ nodeName: this.nodeConfig.nodeName })
-        })
-      } else if (type === 2) {
-        this.auditTypeVal = this.nodeConfig.auditType ? this.nodeConfig.auditType : 0
-        this.auditRadioVal = this.nodeConfig.userType ? this.nodeConfig.userType : 0
-        const userList = []
-        if (this.nodeConfig.userList) {
-          this.nodeConfig.userList.forEach(item => {
+          break
+
+        case 2:
+          this.auditTypeVal = this.nodeConfig.auditType ? this.nodeConfig.auditType : 0
+          this.auditRadioVal = this.nodeConfig.userType ? this.nodeConfig.userType : 0
+          if (this.nodeConfig.userList) {
+            this.nodeConfig.userList.forEach(item => {
             // userType 0人员 1角色 2主管
-            if (this.nodeConfig.userType === 0) {
-              userList.push({ id: item.dataId, deptId: null, realName: item.userName, userName: item.userName })
-            } else if (this.nodeConfig.userType === 1) {
-              userList.push({ id: item.dataId, roleName: item.userName })
-            } else if (this.nodeConfig.userType === 2) {
-              userList.push({ id: item.dataId, userName: item.userName })
-              this.selectVal = item.dataId
-            } else if (this.nodeConfig.userType === 3) {
-              this.level = item.level
-              userList.push({ id: item.dataId, roleName: item.userName })
-            } else if (this.nodeConfig.userType === 4) {
-              userList.push({ id: item.dataId, roleName: item.userName })
-            }
+              if (this.nodeConfig.userType === 0) {
+                userList.push({ id: item.dataId, deptId: null, realName: item.userName, userName: item.userName })
+              } else if (this.nodeConfig.userType === 1) {
+                userList.push({ id: item.dataId, roleName: item.userName })
+              } else if (this.nodeConfig.userType === 2) {
+                userList.push({ id: item.dataId, userName: item.userName })
+                this.selectVal = item.dataId
+              } else if (this.nodeConfig.userType === 3) {
+                this.level = item.level
+                userList.push({ id: item.dataId, roleName: item.userName })
+              } else if (this.nodeConfig.userType === 4) {
+                userList.push({ id: item.dataId, roleName: item.userName })
+              }
+            })
+          }
+          this.copyerDrawer = true
+          this.$nextTick(() => {
+            this.postIds = userList
           })
-        }
-        this.copyerDrawer = true
-        this.$nextTick(() => {
-          this.postIds = userList
-        })
-      } else {
-        // 是否显示分支抽屉
-        this.conditionDrawer = true
-        this.conditionIndex = priorityLevel
-        this.$nextTick(() => {
-          this.$set(this.conditions, this.conditionIndex, this.nodeConfig.conditionNodes[priorityLevel].condition ? this.nodeConfig.conditionNodes[priorityLevel].condition : [])
-        })
+          break
+
+        case 3:
+        case 999:
+        case 4:
+          this.conditionDrawer = true
+          this.conditionIndex = priorityLevel
+          this.$nextTick(() => {
+            this.$set(this.conditions, this.conditionIndex, this.nodeConfig.conditionNodes[priorityLevel].condition ? this.nodeConfig.conditionNodes[priorityLevel].condition : [])
+          })
+          break
+        default:
+          break
       }
     },
     // 条件交换位置

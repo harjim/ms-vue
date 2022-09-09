@@ -44,6 +44,19 @@ const enums = {
       { value: 1, label: 'A' },
       { value: 2, label: 'B' },
       { value: 3, label: 'C' }
+    ],
+    // 研究人员类型
+    rdEmployeeEnum: [
+      { value: 1, label: '研究人员' },
+      { value: 2, label: '技术人员' },
+      { value: 3, label: '辅助人员' }
+    ],
+    // 设备类型
+    equipmentEnum: [
+      { value: 30000, label: '设备' },
+      { value: 30100, label: '仪器' },
+      { value: 30200, label: '房屋建筑' },
+      { value: 40001, label: '软件摊销' }
     ]
   }
 }

@@ -40,7 +40,7 @@
               allow-clear
               :autoSize="{ minRows: 5 }"
               style="width: 94%;"
-              v-decorator="['suggestion', {rules:[{required: true, whitespace:true,min: 4, message: '请输入5字以上取消申请原因'}]}]"
+              v-decorator="['suggestion', {rules:[{required: true, whitespace:true,min: 5, message: '请输入5字以上取消申请原因'}]}]"
             />
           </a-form-item>
         </a-col>
@@ -89,6 +89,7 @@ export default {
         if (data.success) {
           this.$message.success('取消申请成功')
           this.visible = false
+          this.$emit('ok')
         } else {
           this.$message.error(data.errorMessage || '取消申请失败')
         }

@@ -6,8 +6,8 @@
  * @Description:
  * @FilePath: \MS-VUE\src\utils\processDoc\auditStatus.js
  */
-const IS_EDIT = [2, 3, 5, 6, 7]
-const IS_EXPORT = [1, 8]
+const IS_EDIT = [2, 3, 5, 6, 7, 8]
+const IS_EXPORT = [1]
 const statusMap = {
   '0': '进行中',
   '1': '通过',

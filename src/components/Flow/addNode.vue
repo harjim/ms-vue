@@ -15,21 +15,28 @@
             <div class="add-node-popover-body">
               <a class="add-node-popover-item approver" @click="addType(1)">
                 <div class="item-wrapper">
-                  <span class="iconfont"></span>
+                  <span class="iconfont">&#xe66e;</span>
                 </div>
                 <p>审批人</p>
               </a>
               <a class="add-node-popover-item notifier" @click="addType(2)">
                 <div class="item-wrapper">
-                  <span class="iconfont"></span>
+                  <span class="iconfont">&#xe605;</span>
                 </div>
                 <p>抄送人</p>
               </a>
               <a class="add-node-popover-item condition" @click="addType(3)">
                 <div class="item-wrapper">
-                  <span class="iconfont"></span>
+                  <span class="iconfont">&#xe99d;</span>
                 </div>
                 <p>条件分支</p>
+              </a>
+              <a class="add-node-popover-item parallelBranches" @click="addType(4)">
+                <div class="item-wrapper">
+                  <span class="iconfont">&#xe852;</span>
+                  <!-- <span class="iconfont"><img src="@/assets/icons/ParallelBranches.svg" style="width: 55%;"></span> -->
+                </div>
+                <p>并行分支</p>
               </a>
             </div>
           </template>
@@ -55,10 +62,10 @@ export default {
   methods: {
     addType (type) {
       this.visible = false
-      if (type !== 3) {
-        var data
-        if (type === 1) {
-          data = {
+      let date
+      switch (type) {
+        case 1:
+          date = {
             'nodeName': '审核节点',
             'error': true,
             'type': 1,
@@ -74,43 +81,75 @@ export default {
             'nodeUserList': [],
             'skip': true
           }
-        } else if (type === 2) {
-          data = {
+          break
+        case 2:
+          date = {
             'nodeName': '抄送节点',
             'type': 2,
             'ccSelfSelectFlag': 1,
             'childNode': this.childNodeP,
             'nodeUserList': []
           }
-        }
-        this.$emit('update:childNodeP', data)
-      } else {
-        this.$emit('update:childNodeP', {
-          'nodeName': '大分支节点',
-          'error': true,
-          'type': 999,
-          'childNode': null,
-          'conditionNodes': [{
-            'nodeName': '条件1',
+          break
+        case 3:
+          date = {
+            'nodeName': '大分支节点',
             'error': true,
-            'type': 3,
-            'priorityLevel': 1,
-            'seq': 0,
-            'conditionList': [],
-            'nodeUserList': [],
-            'childNode': this.childNodeP
-          }, {
-            'nodeName': '条件2',
-            'error': true,
-            'type': 3,
-            'priorityLevel': 2,
-            'seq': 1,
-            'conditionList': [],
-            'nodeUserList': [],
-            'childNode': null
-          }]
-        })
+            'type': 999,
+            'childNode': null,
+            'conditionNodes': [{
+              'nodeName': '条件1',
+              'error': true,
+              'type': 3,
+              'priorityLevel': 1,
+              'seq': 0,
+              'conditionList': [],
+              'nodeUserList': [],
+              'childNode': this.childNodeP
+            }, {
+              'nodeName': '条件2',
+              'error': true,
+              'type': 3,
+              'priorityLevel': 2,
+              'seq': 1,
+              'conditionList': [],
+              'nodeUserList': [],
+              'childNode': null
+            }]
+          }
+          break
+        case 4:
+          // 添加并行节点
+          date = {
+            'nodeName': '并行节点',
+            'error': false,
+            'type': 4,
+            'childNode': null,
+            'conditionNodes': [{
+              'nodeName': '分支1',
+              'error': false,
+              'type': 4,
+              'priorityLevel': 1,
+              'seq': 0,
+              'conditionList': [],
+              'nodeUserList': [],
+              'childNode': this.childNodeP
+            }, {
+              'nodeName': '分支2',
+              'error': false,
+              'type': 4,
+              'priorityLevel': 2,
+              'seq': 1,
+              'conditionList': [],
+              'nodeUserList': [],
+              'childNode': null
+            }]
+          }
+          break
+        default:
+          break
       }
+      this.$emit('update:childNodeP', date)
     }
   }
 }

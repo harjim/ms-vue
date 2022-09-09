@@ -58,7 +58,7 @@
         show-overflow="tooltip"
       >
         <template v-slot="{ row }">
-          <img :src="'/images'+row.qrcode" :width="20" :height="20" />
+          <img :src="'/images'+row.qrcode" :width="38" :height="38" />
         </template>
       </vxe-table-column>
       <vxe-table-column

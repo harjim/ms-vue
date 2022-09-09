@@ -43,25 +43,6 @@
 import TabLayout from './TabLayout'
 import ystable from '@/components/Table/ystable'
 import AuditLog from './AuditLog'
-const column = [
-  { type: 'seq', title: '序号', width: 60, headerAlign: 'center', align: 'center' },
-  { field: 'ecode', title: '资产代码', width: 120, headerAlign: 'center', align: 'left' },
-  { field: 'ename', title: '设备名称', width: 120, headerAlign: 'center', align: 'left' },
-  { field: 'emodal', title: '设备型号', width: 120, headerAlign: 'center', align: 'left' },
-  { field: 'etype',
-    title: '设备类型',
-    width: 120,
-    headerAlign: 'center',
-    align: 'left',
-    formatter: ({ cellValue }) => {
-      const map = { '0': '普通', '30000': '设备', '30100': '仪器', '40001': '软件摊销' }
-      return map[cellValue]
-    } },
-  { field: 'deptName', title: '研发部门', width: 120, headerAlign: 'center', align: 'left' },
-  { field: 'workshop', title: '车间', width: 120, headerAlign: 'center', align: 'left' },
-  { field: 'productLine', title: '产线', width: 120, headerAlign: 'center', align: 'left' },
-  { field: 'processSection', title: '工艺段', width: 120, headerAlign: 'center', align: 'left' }
-]
 export default {
   name: 'EquipmentTab',
   components: {
@@ -89,7 +70,24 @@ export default {
   },
   data () {
     return {
-      column,
+      column: [
+        { type: 'seq', title: '序号', width: 60, headerAlign: 'center', align: 'center' },
+        { field: 'ecode', title: '资产代码', width: 120, headerAlign: 'center', align: 'left' },
+        { field: 'ename', title: '设备名称', width: 120, headerAlign: 'center', align: 'left' },
+        { field: 'emodal', title: '设备型号', width: 120, headerAlign: 'center', align: 'left' },
+        { field: 'etype',
+          title: '设备类型',
+          width: 120,
+          headerAlign: 'center',
+          align: 'left',
+          formatter: ({ cellValue }) => {
+            return cellValue ? this.$getEnums('equipmentEnum').find(item => item.value === Number(cellValue)).label : ''
+          } },
+        { field: 'deptName', title: '研发部门', width: 120, headerAlign: 'center', align: 'left' },
+        { field: 'workshop', title: '车间', width: 120, headerAlign: 'center', align: 'left' },
+        { field: 'productLine', title: '产线', width: 120, headerAlign: 'center', align: 'left' },
+        { field: 'processSection', title: '工艺段', width: 120, headerAlign: 'center', align: 'left' }
+      ],
       spinningLog: false,
       headerInfo: {
         prodCnt: '-',

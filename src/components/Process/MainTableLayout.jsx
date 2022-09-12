@@ -46,10 +46,6 @@ export default {
     items: {
       type: Array,
       default: () => []
-    },
-    wrapper: {
-      type: Function,
-      default: () => (v) => v
     }
   },
   data() {
@@ -60,7 +56,7 @@ export default {
   },
   methods: {
     refresh(flag = false) {
-      this.params = this.wrapper(this.$refs.SearchForm.getFieldsValue())
+      this.wrapper(this.$refs.SearchForm.getFieldsValue())
       this.$nextTick(() => {
         this.$refs.xTable.refresh(flag)
       })
@@ -83,6 +79,14 @@ export default {
             this.$message.error(errorMessage)
           }
         })
+    },
+    wrapper(values) {
+      _.forIn(values, (v, k) => {
+        if ((k === 'ownerId' || k === 'techId' || k === 'finaManagerId') && v) {
+          values[k] = v.id
+        }
+      })
+      this.params = values
     }
   },
   render() {

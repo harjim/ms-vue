@@ -1,0 +1,32 @@
+.form-box {
+  & .ant-form-item {
+    display: flex;
+    margin-bottom: 8px;
+
+    & .ant-form-item-label {
+      width: 110px;
+    }
+  }
+
+  & .ant-form-item-control-wrapper {
+    flex: 1;
+  }
+
+  &__table-btn {
+    width: 820px;
+    margin: 12px 0;
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    column-gap: 16px;
+
+    & button:first-child {
+      flex: 7;
+    }
+
+    & button:last-child {
+      flex: 3;
+    }
+  }
+}

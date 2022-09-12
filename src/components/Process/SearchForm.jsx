@@ -1,10 +1,10 @@
 import { Form, Input, Select, Button } from 'ant-design-vue'
-import { SearchSelect, YearSelect } from '../Selects/index'
+import { SearchSelect, YearSelect, DeptSelect } from '../Selects/index'
 
 const FormItem = Form.Item
 
 const SearchForm = {
-  components: { YearSelect, Input, SearchSelect, Select },
+  components: { YearSelect, Input, SearchSelect, Select, DeptSelect },
   props: {
     items: {
       type: Array,

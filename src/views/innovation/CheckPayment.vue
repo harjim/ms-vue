@@ -1,14 +1,7 @@
 <template>
   <div>
-    <MainTableLayout
-      :control="control"
-      :columns="columns"
-      :items="items"
-      :wrapper="wrapper"
-      url-prefix="checkPayment"
-      @add="add"
-    />
-    <CheckPaymentDrawer ref="CheckPaymentDrawer" />
+    <MainTableLayout :control="control" :columns="columns" :items="items" url-prefix="checkPayment" @add="add" />
+    <CheckPaymentDrawer ref="CheckPaymentDrawer" :processType="processType" />
     <preview-modal ref="previewModal" />
   </div>
 </template>
@@ -16,7 +9,6 @@
 <script>
 import PreviewModal from '@/components/PreviewModal/PreviewModal.vue'
 import MainTableLayout from '@/components/Process/MainTableLayout'
-import _ from 'lodash'
 import CheckPaymentDrawer from './modules/CheckPaymentDrawer.vue'
 
 export default {
@@ -136,6 +128,7 @@ export default {
     return {
       items,
       columns,
+      processType,
       control: {
         search: this.$auth('innovation:checkPayment:search'),
         add: this.$auth('innovation:checkPayment:add'),
@@ -152,14 +145,6 @@ export default {
         return
       }
       this.$refs.PreviewModal.show(filePath, filename)
-    },
-    wrapper(values) {
-      _.forIn(values, (v, k) => {
-        if ((k === 'ownerId' || k === 'techId' || k === 'finaManagerId') && v) {
-          values[k] = v.id
-        }
-      })
-      return values
     },
     add() {
       this.$refs.CheckPaymentDrawer.open()

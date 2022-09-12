@@ -5,6 +5,8 @@ import ProductSelect from './ProductSelect'
 import ProjectSelect from './ProjectSelect'
 import SelectCompany from './SelectCompany'
 import SelectMan from './SelectMan'
+import CompanySelect from './CompanySelect'
+import CheckInstSelect from './CheckInstSelect'
 
 export {
   SearchSelect,
@@ -13,5 +15,7 @@ export {
   ProductSelect,
   ProjectSelect,
   SelectCompany,
-  SelectMan
+  SelectMan,
+  CompanySelect,
+  CheckInstSelect
 }

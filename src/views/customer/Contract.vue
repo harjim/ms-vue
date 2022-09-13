@@ -1,17 +1,17 @@
 <template>
   <div>
-    <MainTableLayout :control="control" :columns="columns" :items="items" url-prefix="contract" @add="add" />
+    <MainTable :control="control" :columns="columns" :items="items" url-prefix="contract" @add="add" />
     <preview-modal ref="previewModal" />
   </div>
 </template>
 
 <script>
 import PreviewModal from '@/components/PreviewModal'
-import MainTableLayout from '@/components/Process/MainTableLayout'
+import MainTable from '@/components/Process/MainTable.vue'
 
 export default {
   name: 'Contract',
-  components: { PreviewModal, MainTableLayout },
+  components: { PreviewModal, MainTable },
   data() {
     const processType = [
       { value: 0, label: '业务员' },

@@ -23,7 +23,7 @@ function plugin (Vue) {
           if (_this.$store.getters.userInfo.permDataMap) {
             return _this.$store.getters.userInfo.permDataMap[permission]
           }
-          return false
+          return true
         }
       }
     }

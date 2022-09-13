@@ -13,8 +13,14 @@ function menus2Routers (menus) {
       {
         path: '/dashboard/workplace',
         name: 'Workplace',
-        component: () => import(/* webpackChunkName: "Workplace" */'@/views/dashboard/Workplace'),
+        component: () => import(/* webpackChunkName: "Workplace" */ '@/views/dashboard/Workplace'),
         meta: { title: '首页', icon: 'desktop', keepAlive: true }
+      },
+      {
+        path: '/innovation/CheckPayment',
+        name: 'CheckPayment',
+        component: () => import(/* webpackChunkName: "CheckPayment" */ '@/views/innovation/CheckPayment'),
+        meta: { title: '111' }
       }
     ]
   }

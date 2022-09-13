@@ -1,7 +1,15 @@
 <template>
   <div>
-    <MainTableLayout :control="control" :columns="columns" :items="items" url-prefix="checkPayment" @add="add" />
-    <CheckPaymentDrawer ref="CheckPaymentDrawer" :processType="processType" />
+    <MainTableLayout
+      ref="MainTableLayout"
+      :control="control"
+      :columns="columns"
+      :items="items"
+      url-prefix="checkPayment"
+      @add="add"
+      @edit="edit"
+    />
+    <CheckPaymentDrawer ref="CheckPaymentDrawer" :processType="processType" @refresh="refresh" />
     <preview-modal ref="previewModal" />
   </div>
 </template>
@@ -148,6 +156,12 @@ export default {
     },
     add() {
       this.$refs.CheckPaymentDrawer.open()
+    },
+    refresh(flag) {
+      this.$refs.MainTableLayout.refresh(flag)
+    },
+    edit(id) {
+      this.$refs.CheckPaymentDrawer.edit(id)
     }
   }
 }

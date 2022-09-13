@@ -25,6 +25,14 @@ const FormData = {
     items: {
       type: Array,
       default: () => []
+    },
+    row: {
+      type: Object,
+      default: () => ({})
+    },
+    canEdit: {
+      type: Boolean,
+      default: false
     }
   },
   data() {
@@ -32,10 +40,15 @@ const FormData = {
       list: {}
     }
   },
+  computed: {},
   methods: {
+    close() {
+      this.form.resetFields()
+      Object.assign(this.$data, this.$options.data())
+    },
     addListItem(field, col) {
       const values = this.list[field] || []
-      let nItem = {}
+      const nItem = {}
       for (const colItem of col) {
         if (colItem.slot) nItem[colItem.field] = null
       }
@@ -52,10 +65,23 @@ const FormData = {
       this.form.setFieldsValue({
         [field]: fValues.filter((v, i) => i !== idx)
       })
+    },
+    quickAdd(field, arr) {
+      const values = this.list[field] || []
+      const nextVal = _.uniqBy(_.concat(values, arr), 'rdTitle')
+      this.list = {
+        ...this.list,
+        [field]: nextVal
+      }
+      this.$nextTick(() => {
+        this.form.setFieldsValue({
+          [field]: nextVal
+        })
+      })
     }
   },
   render(h) {
-    const { items, form, list } = this
+    const { items, form, list, canEdit } = this
     const { getFieldDecorator } = form
 
     const renderFormItem = (item) => (
@@ -66,11 +92,15 @@ const FormData = {
       </FormItem>
     )
 
-    const renderItem = ({ component, props, style }) => {
-      return h(component, {
-        style,
-        props
-      })
+    const renderItem = ({ component, props, style, field, eField }) => {
+      if (canEdit) {
+        return h(component, {
+          style,
+          props
+        })
+      } else {
+        return <span>{this.row[eField] || this.row[field]}</span>
+      }
     }
 
     const renderWrapper = ({ children }) => (
@@ -91,93 +121,111 @@ const FormData = {
       )
     }
 
-    const renderList = ({ label, field, columns, btns }) => {
-      return (
-        <div>
-          <FormItem label={label}>
-            <vxe-table
-              auto-resize
-              resizable
-              stripe
-              keep-source
-              row-key
-              max-height="244"
-              edit-config={{ trigger: 'manual', mode: 'row', autoClear: false, showIcon: false }}
-              show-overflow="tooltip"
-              data={list[field]}
-            >
-              {columns.map((col) => {
-                if (col.slot) {
-                  return (
-                    <vxe-table-column
-                      type={col.type}
-                      title={col.title}
-                      field={col.field}
-                      width={col.width}
-                      {...{
-                        scopedSlots: {
-                          default: ({ row, $rowIndex }) => {
-                            return renderListItem(`${field}[${$rowIndex}].${col.field}`, col.slot)
-                          }
-                        }
-                      }}
-                    ></vxe-table-column>
-                  )
-                } else if (col.type === 'operate') {
-                  return (
-                    <vxe-table-column
-                      title={col.title}
-                      {...{
-                        scopedSlots: {
-                          default: ({ row, $rowIndex }) => (
-                            <Popconfirm
-                              title="是否删除该项目记录"
-                              autoAdjustOverflow={false}
-                              placement="topRight"
-                              onConfirm={() => this.delListItem(field, $rowIndex)}
-                            >
-                              <a>移除</a>
-                            </Popconfirm>
-                          )
-                        }
-                      }}
-                    />
-                  )
-                } else {
-                  return (
-                    <vxe-table-column
-                      type={col.type}
-                      title={col.title}
-                      field={col.field}
-                      width={col.width}
-                    ></vxe-table-column>
+    const renderListCol = (columns, field) => {
+      return columns.map((col) => {
+        if (col.slot) {
+          return (
+            <vxe-table-column
+              type={col.type}
+              title={col.title}
+              field={col.field}
+              width={col.width}
+              {...{
+                scopedSlots: {
+                  default: ({ row, $rowIndex }) => {
+                    return renderListItem(`${field}[${$rowIndex}].${col.field}`, col.slot)
+                  }
+                }
+              }}
+            />
+          )
+        } else if (col.type === 'operate') {
+          return (
+            <vxe-table-column
+              title={col.title}
+              {...{
+                scopedSlots: {
+                  default: ({ row, $rowIndex }) => (
+                    <Popconfirm
+                      title="是否删除该项目记录"
+                      autoAdjustOverflow={false}
+                      placement="topRight"
+                      onConfirm={() => this.delListItem(field, $rowIndex)}
+                    >
+                      <a>移除</a>
+                    </Popconfirm>
                   )
                 }
-              })}
-            </vxe-table>
-            {btns.length === 1 ? (
-              <div>
-                <Button block type="dashed" icon="plus" onClick={() => this.addListItem(field, columns)}>
-                  添加
-                </Button>
-              </div>
-            ) : (
-              <div class="form-box__table-btn">
-                <Button block type="dashed" icon="plus">
-                  添加
-                </Button>
-                <Button
-                  block
-                  type="dashed"
-                  disabled={!form.getFieldValue('customerId') || !form.getFieldValue('year')}
-                  onClick={() => btns[1].click()}
-                >
-                  引入项目
-                </Button>
-              </div>
-            )}
-          </FormItem>
+              }}
+            />
+          )
+        }
+        return <vxe-table-column type={col.type} title={col.title} field={col.field} width={col.width} />
+      })
+    }
+
+    const renderBtn = (btns, field, columns) => {
+      return btns.length === 1 ? (
+        <div>
+          <Button block type="dashed" icon="plus" onClick={() => this.addListItem(field, columns)}>
+            添加
+          </Button>
         </div>
+      ) : (
+        <div class="form-box__table-btn">
+          <Button block type="dashed" icon="plus" onClick={() => this.addListItem(field, columns)}>
+            添加
+          </Button>
+          <Button
+            block
+            type="dashed"
+            disabled={!form.getFieldValue('customerId') || !form.getFieldValue('year')}
+            onClick={() => btns[1].click()}
+          >
+            引入项目
+          </Button>
+        </div>
+      )
+    }
+
+    const renderList = ({ label, field, required, columns, btns }) => {
+      if (canEdit) {
+        return (
+          <div>
+            <FormItem label={label} required={required}>
+              <vxe-grid
+                auto-resize
+                resizable
+                stripe
+                keep-source
+                row-key
+                max-height="244"
+                edit-config={{ trigger: 'manual', mode: 'row', autoClear: false, showIcon: false }}
+                show-overflow="tooltip"
+                data={list[field]}
+              >
+                {renderListCol(columns, field)}
+              </vxe-grid>
+              {renderBtn(btns, field, columns)}
+            </FormItem>
+          </div>
+        )
+      }
+      return (
+        <FormItem label={label} required={required}>
+          <vxe-grid
+            auto-resize
+            resizable
+            stripe
+            keep-source
+            row-key
+            max-height="244"
+            edit-config={{ trigger: 'manual', mode: 'row', autoClear: false, showIcon: false }}
+            show-overflow="tooltip"
+            columns={columns}
+            data={list[field]}
+          />
+        </FormItem>
       )
     }
 
@@ -198,8 +246,4 @@ const FormData = {
   }
 }
 
-export default Form.create({
-  onValuesChange: (props, values) => {
-    console.log(props, values)
-  }
-})(FormData)
+export default Form.create({})(FormData)

@@ -98,7 +98,7 @@ export default {
 
     const renderEditEntry = (field, data) => {
       if (control.edit || control.check) {
-        return <a>{data[field]}</a>
+        return <a onClick={() => this.$emit('edit', data.id)}>{data[field]}</a>
       }
       return <span>{data[field]}</span>
     }

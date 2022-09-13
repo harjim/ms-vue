@@ -1,6 +1,16 @@
 <template>
   <div>
-    <ProcessLayout ref="CheckDrawer" com="DoubleColumn" :processType="processType" :items="items"> </ProcessLayout>
+    <ProcessLayout
+      ref="CheckDrawer"
+      com="DoubleColumn"
+      url-prefix="checkPayment"
+      :processType="processType"
+      :items="items"
+      :wrapperParams="wrapperParams"
+      :wrapperForm="wrapperForm"
+      :formValuesChange="formValuesChange"
+      @refresh="(flag) => $emit('refresh', flag)"
+    />
     <QuickAddCheckDrawer ref="QuickAddCheckDrawer" @select="quickSelect" />
   </div>
 </template>
@@ -9,6 +19,7 @@
 import ProcessLayout from '@/components/Process/ProcessLayout'
 import QuickAddCheckDrawer from './QuickAddCheckDrawer'
 import _ from 'lodash'
+import moment from 'moment'
 
 export default {
   components: {
@@ -29,6 +40,7 @@ export default {
           {
             component: 'CompanySelect',
             field: 'customerId',
+            eField: 'companyName',
             label: '客户名称',
             rules: [{ required: true, message: '请输入客户名称' }],
             style: { width: '300px' }
@@ -49,6 +61,7 @@ export default {
           {
             component: 'SearchSelect',
             field: 'ownerId',
+            eField: 'ownerName',
             label: '业务员',
             rules: [{ required: true, message: '请输入业务员选择' }],
             style: { width: '300px' },
@@ -63,6 +76,7 @@ export default {
           {
             component: 'DeptSelect',
             field: 'deptId',
+            eField: 'deptName',
             label: '所属部门',
             rules: [{ required: true, message: '请选择所属部门' }],
             style: { width: '300px' },
@@ -78,6 +92,7 @@ export default {
           {
             component: 'SearchSelect',
             field: 'techId',
+            eField: 'techName',
             label: '技术人员',
             rules: [{ required: true, message: '请输入技术人员选择' }],
             style: { width: '300px' },
@@ -92,6 +107,7 @@ export default {
           {
             component: 'SearchSelect',
             field: 'finaManagerId',
+            eField: 'finaManagerName',
             label: '财务经理',
             rules: [{ required: true, message: '请输入财务经理选择' }],
             style: { width: '300px' },
@@ -111,6 +127,7 @@ export default {
           {
             component: 'SearchSelect',
             field: 'ownerMangerId',
+            eField: 'ownerMangerName',
             label: '分公司总经理',
             rules: [{ required: true, message: '请输入分公司总经理选择' }],
             style: { width: '300px' },
@@ -125,6 +142,7 @@ export default {
           {
             component: 'SearchSelect',
             field: 'finaDirectorId',
+            eField: 'finaDirectorName',
             label: '财务总监',
             rules: [{ required: true, message: '请输入财务总监选择' }],
             style: { width: '300px' },
@@ -152,6 +170,7 @@ export default {
           {
             component: 'CheckInstSelect',
             field: 'checkInstId',
+            eField: 'checkInstName',
             label: '查新机构',
             rules: [{ required: true, message: '请输入查新机构' }],
             style: { width: '300px' }
@@ -162,6 +181,7 @@ export default {
         component: 'List',
         label: '查新项目',
         field: 'list',
+        required: true,
         columns: [
           { type: 'seq', title: '序号', width: '60' },
           {
@@ -170,6 +190,7 @@ export default {
             width: '270',
             slot: {
               component: 'Input',
+              field: 'rdTitle',
               rules: [{ required: true, message: '请输入项目编号' }],
               style: { width: '240px' }
             }
@@ -180,6 +201,7 @@ export default {
             width: '400',
             slot: {
               component: 'Input',
+              field: 'pname',
               rules: [{ required: true, message: '请输入项目名称' }],
               style: { width: '370px' }
             }
@@ -201,10 +223,10 @@ export default {
           },
           {
             component: 'InputNumber',
-            field: 'unitPrice',
+            field: 'totalAmount',
             label: '总价',
             style: { width: '300px' },
-            props: { placeholder: '0' }
+            props: { placeholder: '0', disabled: true }
           }
         ]
       },
@@ -247,19 +269,54 @@ export default {
     },
     openQuick() {
       const values = this.$refs.CheckDrawer.$refs.FormData.getFieldsValue(['customerId', 'year'])
-      this.$refs.QuickAddCheckDrawer.open(values)
+      this.$refs.QuickAddCheckDrawer.open({ ...values, customerId: values.customerId.id })
     },
     quickSelect(arr) {
       const temp = _.map(arr, (item) => ({
         ..._.pick(item, ['pname', 'rdTitle'])
       }))
-      const list = this.$refs.CheckDrawer.$refs.FormData.list.list
-      this.$refs.CheckDrawer.$refs.FormData.list = _.uniqBy(_.concat(list, temp), 'rdTitle')
-      this.$nextTick(() => {
-        this.$refs.CheckDrawer.$refs.FormData.setFieldsValue({
-          list: list
-        })
-      })
+      this.$refs.CheckDrawer.quickAdd('list', temp)
+    },
+    wrapperParams(v) {
+      return {
+        ..._.pick(v, ['id', 'deptId', 'remark', 'unitPrice', 'year', 'checkUsername', 'checkPassword']),
+        customerId: v.customerId.id,
+        checkInstId: v.checkInstId.id,
+        checkDate: v.checkDate.format('YYYY-MM-DD'),
+        finaDirectorId: v.finaDirectorId.id,
+        finaManagerId: v.finaManagerId.id,
+        techId: v.techId.id,
+        ownerId: v.ownerId.id,
+        ownerMangerId: v.ownerMangerId.id,
+        list: _.map(v.list, (item) => ({ ..._.pick(item, ['rdTitle', 'pname', 'id']) }))
+      }
+    },
+    wrapperForm(v) {
+      const form = {
+        ..._.pick(v, ['id', 'deptId', 'remark', 'unitPrice', 'totalAmount', 'year', 'checkUsername', 'checkPassword']),
+        customerId: { id: v.customerId, title: v.companyName },
+        checkInstId: { id: v.checkInstId, checkInstName: v.checkInstName },
+        checkDate: moment(v.checkDate),
+        finaDirectorId: { id: v.finaDirectorId, realName: v.finaDirectorName },
+        finaManagerId: { id: v.finaManagerId, realName: v.finaManagerName },
+        techId: { id: v.techId, realName: v.techName },
+        ownerId: { id: v.ownerId, realName: v.ownerName },
+        ownerMangerId: { id: v.ownerMangerId, realName: v.ownerMangerName },
+        list: _.map(v.list, (item) => ({ ..._.pick(item, ['rdTitle', 'pname', 'id']) }))
+      }
+      const list = {
+        list: form.list
+      }
+      return {
+        form,
+        list
+      }
+    },
+    edit(id) {
+      this.$refs.CheckDrawer.edit(id)
+    },
+    formValuesChange(props, values) {
+      console.log(props, values)
     }
   }
 }

@@ -12,7 +12,7 @@
     @change="handleChange"
   >
     <a-spin v-if="fetching" slot="notFoundContent" size="small" />
-    <a-select-option v-for="customer in customerList" :key="customer.id">
+    <a-select-option v-for="customer in customerList" :key="customer.id" :oData="customer">
       {{ customer.title }}
     </a-select-option>
   </a-select>
@@ -24,7 +24,7 @@ import _ from 'lodash'
 export default {
   name: 'CompanySelect',
   props: {
-    value: Number
+    value: Object
   },
   data() {
     return {
@@ -37,9 +37,24 @@ export default {
     const defaultFn = () => () => ({})
     this.delayedCompanyNameChange = _.debounce(this.delayedCompanyNameChange || defaultFn, 500)
   },
+  mounted() {
+    if (this.value) {
+      this.val = this.value.id
+      this.customerList = [this.value]
+    } else {
+      this.val = undefined
+      this.customerList = []
+    }
+  },
   watch: {
     value(newValue) {
-      this.val = newValue
+      if (newValue) {
+        this.val = newValue.id
+        this.customerList = [newValue]
+      } else {
+        this.val = undefined
+        this.customerList = []
+      }
     }
   },
   methods: {
@@ -62,9 +77,12 @@ export default {
           this.fetching = false
         })
     },
-    handleChange(v) {
-      console.log(v)
-      this.$emit('change', v)
+    handleChange(v, opt) {
+      let data
+      if (v && opt) {
+        data = opt.data.attrs.oData
+      }
+      this.$emit('change', data)
     }
   }
 }

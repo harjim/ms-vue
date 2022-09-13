@@ -1,14 +1,13 @@
 <template>
   <div>
-    <MainTableLayout
-      ref="MainTableLayout"
+    <MainTable
+      url-prefix="checkPayment"
       :control="control"
       :columns="columns"
       :items="items"
-      url-prefix="checkPayment"
+      :wrapperParams="getParams"
       @add="add"
-      @edit="edit"
-    />
+    ></MainTable>
     <CheckPaymentDrawer ref="CheckPaymentDrawer" :processType="processType" @refresh="refresh" />
     <preview-modal ref="previewModal" />
   </div>
@@ -16,15 +15,16 @@
 
 <script>
 import PreviewModal from '@/components/PreviewModal/PreviewModal.vue'
-import MainTableLayout from '@/components/Process/MainTableLayout'
 import CheckPaymentDrawer from './modules/CheckPaymentDrawer.vue'
+import MainTable from '@/components/Process/MainTable.vue'
+import _ from 'lodash'
 
 export default {
   name: 'CheckPayment',
   components: {
     PreviewModal,
-    MainTableLayout,
-    CheckPaymentDrawer
+    CheckPaymentDrawer,
+    MainTable
   },
   data() {
     const processType = [
@@ -61,8 +61,8 @@ export default {
         childProp: 'list',
         childCol: [
           { title: '序号', type: 'seq', width: '60' },
-          { title: '项目编号', field: 'rdTitle', width: '160' },
-          { title: '项目名称', field: 'pname', width: '240' }
+          { title: '项目编号', field: 'rdTitle', width: '120' },
+          { title: '项目名称', field: 'pname', width: '300' }
         ]
       },
       { title: '技术人员', field: 'techName', width: '100', sortable: true },
@@ -162,6 +162,14 @@ export default {
     },
     edit(id) {
       this.$refs.CheckPaymentDrawer.edit(id)
+    },
+    getParams(values) {
+      _.forIn(values, (v, k) => {
+        if ((k === 'ownerId' || k === 'techId' || k === 'finaManagerId') && v) {
+          values[k] = v.id
+        }
+      })
+      return values
     }
   }
 }
